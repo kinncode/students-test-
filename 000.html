@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>學生名單管理（Bootstrap 版）</title>
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+
+  <div class="container py-4">
+    <h1 class="mb-4 text-center">📚 學生名單管理</h1>
+
+    <!-- 學生列表區 -->
+    <ul id="student-list" class="list-group mb-4">
+      <li class="list-group-item text-center text-muted">載入中...</li>
+    </ul>
+
+    <hr />
+
+    <!-- 表單區 -->
+    <h2 id="form-title" class="mb-3">➕ 新增學生</h2>
+
+    <form id="student-form" class="row g-3 needs-validation" novalidate>
+      <div class="col-md-4">
+        <input
+          type="text"
+          id="student-id"
+          class="form-control"
+          placeholder="學號"
+          required
+        />
+        <div class="invalid-feedback">請輸入學號</div>
+      </div>
+      <div class="col-md-6">
+        <input
+          type="text"
+          id="student-name"
+          class="form-control"
+          placeholder="姓名"
+          required
+        />
+        <div class="invalid-feedback">請輸入姓名</div>
+      </div>
+      <div class="col-md-2 d-flex align-items-center">
+        <button type="submit" class="btn btn-primary me-2">送出</button>
+        <button type="button" id="cancel-edit" class="btn btn-secondary" style="display:none;">取消</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Bootstrap 5 JS Bundle（含 Popper）-->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // 初始化 Firebase
+    var firebaseConfig = {
+      databaseURL: "https://app1-7c1ad-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+    var studentsRef = db.ref("students");
+
+    var editingKey = null; // 正在編輯的 key
+
+    // 載入學生資料
+    function loadStudents() {
+      studentsRef.once("value").then(function(snapshot) {
+        var data = snapshot.val();
+        var list = document.getElementById("student-list");
+        list.innerHTML = "";
+        if (!data) {
+          list.innerHTML = '<li class="list-group-item text-center text-muted">目前沒有學生資料</li>';
+          return;
+        }
+        for (var key in data) {
+          var student = data[key];
+
+          // li
+          var li = document.createElement("li");
+          li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+          // 文字區
+          var textDiv = document.createElement("div");
+          textDiv.textContent = `學號：${student.id}，姓名：${student.name}`;
+
+          // 按鈕群
+          var btnGroup = document.createElement("div");
+
+          // 修改按鈕
+          var editBtn = document.createElement("button");
+          editBtn.className = "btn btn-sm btn-outline-primary me-2";
+          editBtn.textContent = "修改";
+          editBtn.onclick = (function(k, s) {
+            return function() {
+              startEdit(k, s);
+            };
+          })(key, student);
+
+          // 刪除按鈕
+          var delBtn = document.createElement("button");
+          delBtn.className = "btn btn-sm btn-outline-danger";
+          delBtn.textContent = "刪除";
+          delBtn.onclick = (function(k) {
+            return function() {
+              if (confirm("確定要刪除這位學生？")) {
+                studentsRef.child(k).remove().then(loadStudents);
+              }
+            };
+          })(key);
+
+          btnGroup.appendChild(editBtn);
+          btnGroup.appendChild(delBtn);
+
+          li.appendChild(textDiv);
+          li.appendChild(btnGroup);
+
+          list.appendChild(li);
+        }
+      });
+    }
+
+    // 表單驗證與送出
+    document.getElementById("student-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      var form = event.target;
+      if (!form.checkValidity()) {
+        form.classList.add("was-validated");
+        return;
+      }
+
+      submitStudent();
+    }, false);
+
+    // 送出新增或修改
+    function submitStudent() {
+      var id = document.getElementById("student-id").value.trim();
+      var name = document.getElementById("student-name").value.trim();
+
+      if (editingKey) {
+        // 編輯模式
+        studentsRef.child(editingKey).set({ id: id, name: name }).then(() => {
+          cancelEdit();
+          loadStudents();
+          resetFormValidation();
+        }).catch(err => alert("更新失敗：" + err));
+      } else {
+        // 新增模式
+        studentsRef.push({ id: id, name: name }).then(() => {
+          clearForm();
+          loadStudents();
+          resetFormValidation();
+        }).catch(err => alert("新增失敗：" + err));
+      }
+    }
+
+    // 開始編輯
+    function startEdit(key, student) {
+      editingKey = key;
+      document.getElementById("student-id").value = student.id;
+      document.getElementById("student-name").value = student.name;
+      document.getElementById("form-title").textContent = "📝 編輯學生";
+      document.getElementById("cancel-edit").style.display = "inline-block";
+    }
+
+    // 取消編輯
+    function cancelEdit() {
+      editingKey = null;
+      clearForm();
+      document.getElementById("form-title").textContent = "➕ 新增學生";
+      document.getElementById("cancel-edit").style.display = "none";
+      resetFormValidation();
+    }
+
+    // 清空表單欄位
+    function clearForm() {
+      document.getElementById("student-id").value = "";
+      document.getElementById("student-name").value = "";
+    }
+
+    // 重置驗證狀態
+    function resetFormValidation() {
+      var form = document.getElementById("student-form");
+      form.classList.remove("was-validated");
+    }
+
+    // 取消按鈕事件
+    document.getElementById("cancel-edit").addEventListener("click", cancelEdit);
+
+    // 初始載入
+    window.onload = loadStudents;
+  </script>
+</body>
+</html>
