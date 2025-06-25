@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能表格管理系統</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-table"></i> 智能表格管理系統</h1>
+            <p>使用AI助手幫您快速填寫和管理表格資料</p>
+        </header>
+
+        <main>
+            <div class="table-controls">
+                <button id="addRowBtn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> 新增行
+                </button>
+                <button id="exportBtn" class="btn btn-success">
+                    <i class="fas fa-download"></i> 匯出CSV
+                </button>
+                <button id="clearBtn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> 清空表格
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>序號</th>
+                            <th>姓名</th>
+                            <th>電子郵件</th>
+                            <th>電話</th>
+                            <th>部門</th>
+                            <th>職位</th>
+                            <th>入職日期</th>
+                            <th>薪資</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 表格內容將由JavaScript動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI聊天對話框 -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header" id="chatHeader">
+            <div class="chat-title">
+                <i class="fas fa-robot"></i>
+                <span>AI助手</span>
+            </div>
+            <div class="chat-controls">
+                <button class="minimize-btn" id="minimizeBtn">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="close-btn" id="closeBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    <div class="message-content">
+                        <i class="fas fa-robot"></i>
+                        <div class="text">
+                            您好！我是您的AI助手，可以幫您：
+                            <ul>
+                                <li>填寫表格資料方式</li>
+                                <li>搜尋和篩選資料</li>
+                                <li>計算統計資訊</li>
+                                <li>匯出資料</li>
+                            </ul>
+                            請告訴我您需要什麼幫助？
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="輸入您的問題或指令...">
+                <button id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                <button id="clearChatBtn" title="清除對話" style="margin-left:8px;"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 聊天按鈕 -->
+    <div class="chat-toggle" id="chatToggle">
+        <i class="fas fa-comments"></i>
+    </div>
+
+    <!-- 左側側邊欄 -->
+    <div id="leftSidebar" class="sidebar">
+        <div class="sidebar-content">
+            <!-- 這裡可以放聊天、選單、資訊等 -->
+            <h2>側邊欄內容</h2>
+            <p>這裡可以放你想要的內容。</p>
+        </div>
+    </div>
+    <!-- 展開/收合側邊欄按鈕 -->
+    <button id="toggleSidebarBtn" class="open-btn">&#9776;</button>
+
+    <script src="script.js"></script>
+</body>
+</html> 
