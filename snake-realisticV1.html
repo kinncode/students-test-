@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>真實花園貪吃蛇 (V4 - 離線版)</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        #loader-container { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: white; font-family: monospace; font-size: 1.5rem; text-align: center; padding: 20px; background-color: rgba(0,0,0,0.7); border-radius: 10px; }
+        #ui-container { position: absolute; top: 20px; width: 100%; text-align: center; z-index: 100; color: white; font-family: 'Segoe UI', sans-serif; text-shadow: 2px 2px 4px #000; display: none; }
+        #gameOverScreen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; text-align: center; color: white; font-family: 'Segoe UI', sans-serif; z-index: 200; }
+        #touch-controls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 101; display: none; }
+        #left-control { position: absolute; top: 0; left: 0; width: 50%; height: 100%; }
+        #right-control { position: absolute; top: 0; right: 0; width: 50%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="loader-container">
+        <p id="loader-message">正在載入花園場景...</p>
+        <p id="loader-progress">0%</p>
+    </div>
+    <div id="ui-container">
+        <h1 style="margin: 0;">真實花園貪吃蛇</h1>
+        <div id="score" style="font-size: 1.5rem;">分數: 0</div>
+    </div>
+    <div id="gameOverScreen">
+        <div>
+            <h1 style="font-size: 4rem;">遊戲結束</h1>
+            <p style="font-size: 1.5rem;">按 Enter 或點擊螢幕重新開始</p>
+        </div>
+    </div>
+
+    <div id="touch-controls">
+        <div id="left-control"></div>
+        <div id="right-control"></div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- Setup ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        document.body.appendChild(renderer.domElement);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+
+        // --- Loaders ---
+        const loadingManager = new THREE.LoadingManager();
+        const loaderContainer = document.getElementById('loader-container');
+        const loaderMessage = document.getElementById('loader-message');
+        const loaderProgress = document.getElementById('loader-progress');
+        loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+            loaderProgress.textContent = `正在下載背景... ${Math.round((itemsLoaded / itemsTotal) * 100)}%`;
+        };
+        loadingManager.onLoad = () => {
+            loaderContainer.style.display = 'none';
+            document.getElementById('ui-container').style.display = 'block';
+            init();
+        };
+        loadingManager.onError = (url) => {
+            loaderMessage.textContent = '背景載入失敗!';
+            loaderProgress.innerHTML = `無法載入: <br>${url}<br><br>請檢查您的網路連線並重新整理頁面。`;
+        };
+        const textureLoader = new THREE.TextureLoader(loadingManager);
+        const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
+
+        // --- Procedurally Generated Models ---
+        function createSnakeHead() {
+            const head = new THREE.Group();
+            const mainHead = new THREE.Mesh(
+                new THREE.SphereGeometry(0.5, 32, 32),
+                new THREE.MeshStandardMaterial({ color: 0x2E8B57, roughness: 0.3 })
+            );
+            mainHead.castShadow = true;
+            head.add(mainHead);
+
+            const eyeGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            leftEye.position.set(0.2, 0.2, 0.4);
+            head.add(leftEye);
+            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            rightEye.position.set(-0.2, 0.2, 0.4);
+            head.add(rightEye);
+            return head;
+        }
+
+        function createFood() {
+            const food = new THREE.Group();
+            const cherry = new THREE.Mesh(
+                new THREE.SphereGeometry(0.4, 32, 32),
+                new THREE.MeshStandardMaterial({ color: 0xDC143C, roughness: 0.5 })
+            );
+            cherry.castShadow = true;
+            food.add(cherry);
+
+            const stem = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8),
+                new THREE.MeshStandardMaterial({ color: 0x006400 })
+            );
+            stem.position.set(0, 0.3, 0);
+            food.add(stem);
+            return food;
+        }
+
+        // --- Environment (Still loaded, but more stable sources) ---
+        const skybox = cubeTextureLoader.load([
+            'https://threejs.org/examples/textures/cube/pisa/px.png', 'https://threejs.org/examples/textures/cube/pisa/nx.png',
+            'https://threejs.org/examples/textures/cube/pisa/py.png', 'https://threejs.org/examples/textures/cube/pisa/ny.png',
+            'https://threejs.org/examples/textures/cube/pisa/pz.png', 'https://threejs.org/examples/textures/cube/pisa/nz.png',
+        ]);
+        scene.background = skybox;
+        const grassTexture = textureLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
+        grassTexture.wrapS = grassTexture.wrapT = THREE.RepeatWrapping;
+        grassTexture.repeat.set(25, 25);
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ map: grassTexture }));
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // --- Lighting ---
+        const ambient = new THREE.AmbientLight(0x777777);
+        scene.add(ambient);
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(20, 30, -10);
+        sun.castShadow = true;
+        scene.add(sun);
+
+        // --- Game Elements & State ---
+        let snakeHead, foodModel, score, gameOver, animationFrameId;
+        let snakeBody = [];
+        const snakeBodyMaterial = new THREE.MeshStandardMaterial({ color: 0x3CB371, roughness: 0.5 });
+        const snakeBodyGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+        const snakeBodySpacing = 0.6, snakeTurnSpeed = 2.5, snakeMoveSpeed = 0.15;
+        let targetAngle = 0, currentAngle = 0;
+        const scoreElement = document.getElementById('score');
+        const gameOverElement = document.getElementById('gameOverScreen');
+
+        function init() {
+            score = 0;
+            scoreElement.innerText = "分數: 0";
+            gameOver = false;
+            gameOverElement.style.display = 'none';
+            targetAngle = 0;
+            currentAngle = 0;
+
+            if(snakeHead) scene.remove(snakeHead);
+            snakeBody.forEach(part => scene.remove(part));
+            snakeBody = [];
+            if(foodModel) scene.remove(foodModel);
+
+            snakeHead = createSnakeHead();
+            scene.add(snakeHead);
+            foodModel = createFood();
+            scene.add(foodModel);
+
+            snakeHead.position.set(0, 0.5, 0);
+            for (let i = 0; i < 5; i++) addBodySegment();
+            placeFood();
+            
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if ('ontouchstart' in window) {
+                document.getElementById('touch-controls').style.display = 'block';
+            }
+            animate();
+        }
+
+        function addBodySegment() {
+            const newSegment = new THREE.Mesh(snakeBodyGeometry, snakeBodyMaterial);
+            newSegment.castShadow = true;
+            const lastSegment = snakeBody.length > 0 ? snakeBody[snakeBody.length - 1] : snakeHead;
+            newSegment.position.copy(lastSegment.position);
+            snakeBody.push(newSegment);
+            scene.add(newSegment);
+        }
+
+        function placeFood() {
+            const x = (Math.random() - 0.5) * 90;
+            const z = (Math.random() - 0.5) * 90;
+            foodModel.position.set(x, 0.5, z);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (gameOver && e.key === 'Enter') init();
+            if (!gameOver) {
+                if (e.key === 'ArrowLeft') targetAngle += snakeTurnSpeed * (Math.PI / 180);
+                if (e.key === 'ArrowRight') targetAngle -= snakeTurnSpeed * (Math.PI / 180);
+            }
+        });
+
+        // --- Touch Controls ---
+        const touchControls = document.getElementById('touch-controls');
+        const leftControl = document.getElementById('left-control');
+        const rightControl = document.getElementById('right-control');
+        let turningLeft = false;
+        let turningRight = false;
+
+        const handleTurnStart = (e) => {
+            if (e.currentTarget.id === 'left-control') {
+                turningLeft = true;
+            } else {
+                turningRight = true;
+            }
+            e.preventDefault();
+        };
+
+        const handleTurnEnd = (e) => {
+            turningLeft = false;
+            turningRight = false;
+            e.preventDefault();
+        };
+
+        leftControl.addEventListener('touchstart', handleTurnStart, { passive: false });
+        leftControl.addEventListener('touchend', handleTurnEnd, { passive: false });
+        rightControl.addEventListener('touchstart', handleTurnStart, { passive: false });
+        rightControl.addEventListener('touchend', handleTurnEnd, { passive: false });
+        
+        gameOverElement.addEventListener('touchstart', () => {
+            if (gameOver) {
+                init();
+            }
+        });
+
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+
+            if (turningLeft) {
+                targetAngle += snakeTurnSpeed * (Math.PI / 180);
+            }
+            if (turningRight) {
+                targetAngle -= snakeTurnSpeed * (Math.PI / 180);
+            }
+
+            currentAngle += (targetAngle - currentAngle) * 0.1;
+            snakeHead.rotation.y = currentAngle;
+            const direction = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), currentAngle);
+            snakeHead.position.add(direction.multiplyScalar(snakeMoveSpeed));
+
+            let lastPart = snakeHead;
+            for (const part of snakeBody) {
+                const distance = part.position.distanceTo(lastPart.position);
+                if (distance > snakeBodySpacing) {
+                    const followVector = new THREE.Vector3().subVectors(lastPart.position, part.position).normalize();
+                    part.position.add(followVector.multiplyScalar(distance - snakeBodySpacing));
+                    part.lookAt(lastPart.position);
+                }
+                lastPart = part;
+            }
+
+            const cameraOffset = new THREE.Vector3(0, 4, -8).applyAxisAngle(new THREE.Vector3(0, 1, 0), currentAngle);
+            camera.position.lerp(snakeHead.position.clone().add(cameraOffset), 0.05);
+            camera.lookAt(snakeHead.position);
+
+            if (snakeHead.position.distanceTo(foodModel.position) < 1.5) {
+                score++;
+                scoreElement.innerText = "分數: " + score;
+                placeFood();
+                addBodySegment();
+            }
+            if (Math.abs(snakeHead.position.x) > 50 || Math.abs(snakeHead.position.z) > 50) endGame();
+            for (let i = 10; i < snakeBody.length; i++) { // Check further back to avoid head collision
+                if (snakeHead.position.distanceTo(snakeBody[i].position) < 0.5) endGame();
+            }
+            
+            foodModel.rotation.y += 0.01; // Animate food
+
+            renderer.render(scene, camera);
+        }
+
+        function endGame() {
+            gameOver = true;
+            gameOverElement.style.display = 'flex';
+            if ('ontouchstart' in window) {
+                document.getElementById('touch-controls').style.display = 'none';
+            }
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
