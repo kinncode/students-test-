@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>愛的旅程 - 心靈的相遇</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="firebase-auth.css">
+    <!-- 添加Google字體 - 適合朗讀主題的優雅字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      .header-main { 
+        
+        justify-content: space-between; 
+        align-items: flex-start; 
+        padding: 0 24px; 
+      }
+      .auth-container { 
+        min-width: 120px; 
+        text-align: right; 
+        margin-top: 10px; 
+      }
+      .class-selector { 
+        display: flex; 
+        gap: 10px; 
+        margin: 24px 0 16px 0; 
+        justify-content: center; 
+        flex-wrap: wrap;
+        padding: 0 1rem;
+      }
+      .class-btn { 
+        padding: 0.8rem 1.8rem; 
+        border-radius: 30px; 
+        border: none; 
+        background: rgba(255, 255, 255, 0.2); 
+        color: #fff; 
+        font-size: 1em; 
+        cursor: pointer; 
+        transition: all 0.3s ease; 
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .class-btn.active, .class-btn:hover { 
+        background: rgba(255, 255, 255, 0.3); 
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      .class-btn.active {
+        background: white;
+        color: #b68686;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      .works-container { 
+        display: none; 
+        margin-bottom: 32px; 
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      .works-container.active { 
+        display: block; 
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .group-section { 
+        margin-bottom: 3rem; 
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(232, 196, 196, 0.3);
+      }
+      .group-title { 
+        font-size: 1.3rem; 
+        font-weight: 600; 
+        margin-bottom: 1.5rem; 
+        color: #b68686; 
+        text-align: center;
+        position: relative;
+        padding-bottom: 0.5rem;
+      }
+      .group-title:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(to right, #e8c4c4, #d3a5a5);
+      }
+      .works-grid { 
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+      }
+      .work-item { 
+        background: #fff; 
+        border-radius: 15px; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+        overflow: hidden;
+        border: 1px solid #f0e6e0;
+        transition: all 0.3s ease;
+        position: relative;
+        backdrop-filter: blur(10px);
+      }
+      .work-item:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(158, 118, 118, 0.15);
+      }
+      .work-title { 
+        font-weight: 600; 
+        font-size: 1.2rem; 
+        margin-bottom: 6px; 
+        color: #9e7676;
+        padding: 1.2rem;
+        text-align: center;
+        border-top: 1px solid #f0e6e0;
+        line-height: 1.4;
+      }
+      .work-meta { 
+        color: #888; 
+        font-size: 0.95em; 
+        margin-bottom: 8px; 
+      }
+      .video-container { 
+        margin-bottom: 8px; 
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        background-color: #000;
+        border-bottom: 2px solid #e8c4c4;
+      }
+      .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      .student-name {
+        background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
+        color: white;
+        padding: 1rem 1.2rem;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        line-height: 1.4;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      .comments-section {
+        border-top: 1px solid #f0e6e0;
+      }
+      .comments-header {
+        padding: 1rem 1.2rem;
+        background: linear-gradient(135deg, #f8f0f0, #f0e6e0);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #e8c4c4;
+      }
+      .comments-header:hover {
+        background: linear-gradient(135deg, #f0e6e0, #e8c4c4);
+      }
+      .comments-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: #9e7676;
+      }
+      .comments-count {
+        background: #b68686;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+      .comments-content {
+        background: #fff;
+        padding: 1.2rem;
+      }
+      .comment {
+        border-bottom: 1px solid #f0e6e0;
+        padding: 1rem 0;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+      }
+      .comment:hover {
+        background: rgba(232, 196, 196, 0.05);
+        border-radius: 8px;
+        padding-left: 0.5rem;
+      }
+      .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        font-size: 0.9rem;
+        color: #666;
+      }
+      .commenter-info {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+      .commenter-name {
+        font-weight: 600;
+        color: #9e7676;
+      }
+      .commenter-class {
+        color: #888;
+        font-size: 0.8rem;
+      }
+      .rating-stars {
+        color: #e8c4c4;
+        font-size: 1rem;
+      }
+      .comment-content {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #333;
+        padding: 0.5rem 0;
+      }
+      .comments-pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0e6e0;
+      }
+      .page-button {
+        padding: 0.5rem 0.8rem;
+        border: 1px solid #e8c4c4;
+        background: #fff;
+        color: #9e7676;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+      .page-button:hover {
+        background: #f8f0f0;
+        transform: translateY(-1px);
+      }
+      .page-button.active {
+        background: #b68686;
+        color: white;
+        border-color: #b68686;
+      }
+      .loading-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 16px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        backdrop-filter: blur(5px);
+      }
+      .auth-btn {
+        background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+      .auth-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(158, 118, 118, 0.2);
+      }
+      
+      /* 登入 Modal 樣式 */
+      .tab-btn {
+        flex: 1;
+        padding: 0.8rem;
+        border: none;
+        background: none;
+        color: #999;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 2px solid transparent;
+      }
+      
+      .tab-btn.active {
+        color: #b68686;
+        border-bottom-color: #b68686;
+      }
+      
+      .tab-btn:hover {
+        color: #b68686;
+      }
+      
+      .login-form {
+        transition: all 0.3s ease;
+      }
+      
+      .login-form input:focus {
+        outline: none;
+        border-color: #b68686;
+        box-shadow: 0 0 0 2px rgba(182, 134, 134, 0.2);
+      }
+      
+      /* 成功/錯誤訊息樣式 */
+      .message {
+        padding: 0.8rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+      
+      .message.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      
+      .message.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      
+      @media (max-width: 768px) {
+        .works-grid {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+        .group-section {
+          padding: 1rem;
+          margin-bottom: 2rem;
+        }
+        .work-item {
+          margin: 0 0.5rem;
+        }
+        .student-name {
+          font-size: 1rem;
+          padding: 0.8rem 1rem;
+        }
+        .work-title {
+          font-size: 1.1rem;
+          padding: 1rem;
+        }
+      }
+      @media (max-width: 480px) {
+        main {
+          padding: 1rem 0.5rem;
+        }
+        .works-grid {
+          gap: 1rem;
+        }
+        .group-section {
+          padding: 0.8rem;
+        }
+        .comments-content {
+          padding: 1rem;
+        }
+      }
+      #auth-container {
+        position: fixed; top: 24px; right: 24px; z-index: 2000;
+        min-width: 0; text-align: right;
+      }
+      .auth-fab {
+        width: 48px; height: 48px; border-radius: 50%; background: #e8c4c4;
+        color: #fff; font-size: 1.5em; font-weight: bold; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 8px #0002; cursor: pointer; position: relative;
+        transition: box-shadow 0.2s;
+      }
+      .auth-fab:hover { box-shadow: 0 4px 16px #b6868640; }
+      .auth-fab-avatar { font-size: 1.2em; }
+      .auth-fab-arrow { position: absolute; right: 8px; bottom: 6px; font-size: 0.8em; color: #fff8; }
+      .auth-panel {
+        background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #0001;
+        margin-top: 8px; padding: 1rem 1.2rem; min-width: 180px;
+        display: block; position: absolute; right: 0; top: 56px;
+        z-index: 10;
+      }
+      .auth-panel .auth-btn { width: 100%; margin: 0.5em 0 0 0; }
+      @media (max-width: 600px) {
+        #auth-container { top: 8px; right: 8px; }
+        .auth-fab { width: 40px; height: 40px; font-size: 1.1em; }
+        .auth-panel { min-width: 120px; padding: 0.7rem 0.6rem; }
+      }
+      .auth-panel-modern {
+        position: fixed; top: 20px; right: 90px; z-index: 2001;
+        background: #fff; border-radius: 50px; box-shadow: 0 8px 32px #b6868640;
+        padding: 0 2.2rem; min-width: 400px; min-height: 70px; max-width: 90vw;
+        display: flex; flex-direction: row; align-items: center; gap: 1.1rem;
+        transform: translateX(80%) scale(0.85);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          transform 0.55s cubic-bezier(.4,0,.2,1),
+          opacity 0.38s cubic-bezier(.4,0,.2,1),
+          box-shadow 0.38s cubic-bezier(.4,0,.2,1);
+      }
+      .auth-panel-modern.open {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        pointer-events: auto;
+        box-shadow: 0 16px 48px #b6868680;
+      }
+      .auth-panel-avatar {
+        width: 56px; height: 56px; border-radius: 50%;
+        background: #e8c4c4; color: #fff; font-size: 2em; font-weight: bold;
+        display: flex; align-items: center; justify-content: center;
+        margin-right: 0.5rem;
+      }
+      .auth-panel-info {
+        display: flex; flex-direction: column; align-items: flex-start; min-width: 120px;
+      }
+      .auth-panel-name { font-weight: 700; color: #9e7676; font-size: 1.1em; }
+      .auth-panel-meta { color: #888; font-size: 0.98em; margin-top: 2px; }
+      .auth-panel-btns {
+        display: flex; flex-direction: row; gap: 0.7em; margin-left: auto;
+      }
+      .auth-btn-modern {
+        padding: 0.6em 1.2em; border-radius: 20px; border: none;
+        background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
+        color: #fff; font-size: 1em; font-weight: 500;
+        display: flex; align-items: center; gap: 0.5em;
+        cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+      }
+      .auth-btn-modern.logout { background: linear-gradient(135deg, #e88, #b77);}
+      .auth-btn-modern:hover { box-shadow: 0 2px 12px #b6868640;}
+      @media (max-width: 600px) {
+        .auth-fab-modern {
+          width: 44px; height: 44px; font-size: 1.2em; top: 8px; right: 8px;
+        }
+        .auth-panel-modern {
+          position: fixed;
+          top: 56px;
+          left: 0;
+          right: 0;
+          margin: -31 auto;
+          width: 96vw;
+          max-width: 420px;
+          min-width: 0;
+          padding: 0.7rem 0.7rem 0.5rem 0.7rem;
+          border-radius: 22px;
+          min-height: 0;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.5rem;
+          transform: translateY(-40%) scale(0.95);
+          opacity: 0;
+          pointer-events: none;
+          transition:
+            transform 0.5s cubic-bezier(.4,0,.2,1),
+            opacity 0.32s cubic-bezier(.4,0,.2,1),
+            box-shadow 0.32s cubic-bezier(.4,0,.2,1);
+        }
+        .auth-panel-modern.open {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+          pointer-events: auto;
+          box-shadow: 0 8px 32px #b6868680;
+        }
+        .auth-panel-avatar {
+          width: 36px; height: 36px; font-size: 1em;
+          margin: 0 auto 0.2rem auto;
+        }
+        .auth-panel-info {
+          min-width: 0;
+          font-size: 0.95em;
+          align-items: center;
+          text-align: center;
+          margin-bottom: 0.2rem;
+        }
+        .auth-panel-name { font-size: 1em; }
+        .auth-panel-meta { font-size: 0.9em; }
+        .auth-panel-btns {
+          gap: 0.3em;
+          flex-wrap: wrap;
+          margin-left: 0;
+          justify-content: center;
+          display: flex;
+        }
+        .auth-btn-modern {
+          padding: 0.38em 0.7em;
+          font-size: 0.92em;
+          border-radius: 13px;
+        }
+      }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-main">
+            <div>
+                <h1 class="fade-in">情詩朗讀線上成果展</h1>
+                <p class="fade-in" style="color: #fff; margin-top: 10px;">指導老師：南臺科技大學 / 駱育萱</p>
+            </div>
+            <!-- <div id="auth-container" class="auth-container"></div> -->
+        </div>
+        <nav class="class-selector" id="class-selector"></nav>
+    </header>
+    <main id="main-content"></main>
+    
+    <!-- 登入 Modal -->
+    <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 10000;">
+        <div style="position: relative; margin: 5vh auto; background: #fff; padding: 2rem; border-radius: 15px; max-width: 400px; width: 90vw; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+            <h2 style="text-align: center; color: #b68686; margin-bottom: 1rem;">登入個人專區</h2>
+            <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 1.5rem;">登入後可管理個人作品、上傳新作品</p>
+            <div id="login-tabs" style="display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid #f0e6e0;">
+                <button id="google-tab" class="tab-btn" onclick="switchLoginTab('google')">Google 登入</button>
+                <button id="anonymous-tab" class="tab-btn" onclick="switchLoginTab('anonymous')">匿名登入</button>
+            </div>
+            
+            <!-- Email 登入表單 -->
+            <div id="email-form" class="login-form">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #666;">Email</label>
+                    <input type="email" id="login-email" placeholder="請輸入 Email" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #666;">密碼</label>
+                    <input type="password" id="login-password" placeholder="請輸入密碼" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                </div>
+                <button onclick="doLoginWithEmail()" class="auth-btn" style="width: 100%; margin-bottom: 1rem;">登入</button>
+                <button onclick="showRegisterForm()" class="auth-btn" style="width: 100%; background: #9e7676;">註冊新帳號</button>
+            </div>
+            
+            <!-- Email 註冊表單（動態切換顯示） -->
+            <div id="register-form-wrap" class="login-form" style="display:none;">
+              <form id="register-form-modal">
+                <div class="form-group">
+                  <label for="reg-email-modal">電子郵件:</label>
+                  <input type="email" id="reg-email-modal" required>
+                </div>
+                <div class="form-group">
+                  <label for="reg-password-modal">密碼:</label>
+                  <input type="password" id="reg-password-modal" required>
+                </div>
+                <div class="form-group">
+                  <label for="reg-name-modal">姓名:</label>
+                  <input type="text" id="reg-name-modal" required>
+                </div>
+                <div class="form-group">
+                  <label for="reg-studentid-modal">學號:</label>
+                  <input type="text" id="reg-studentid-modal" required>
+                </div>
+                <div class="form-group">
+                  <label for="reg-class-modal">班級:</label>
+                  <select id="reg-class-modal" required><option value="">載入中...</option></select>
+                </div>
+                <div class="form-group">
+                  <label for="reg-group-modal">組別:</label>
+                  <select id="reg-group-modal" required><option value="">請先選擇班級</option></select>
+                </div>
+                <button type="submit" class="submit-btn">註冊</button>
+                <button type="button" onclick="showLoginForm()" class="auth-btn" style="width:100%;margin-top:10px;">返回登入</button>
+              </form>
+            </div>
+            
+            <!-- Google 登入 -->
+            <div id="google-form" class="login-form" style="display: none;">
+                <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">使用 Google 帳號快速登入</p>
+                <button onclick="loginWithGoogle()" class="auth-btn" style="width: 100%; background: #4285f4;">Google 登入</button>
+            </div>
+            
+            <!-- 匿名登入 -->
+            <div id="anonymous-form" class="login-form" style="display: none;">
+                <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">無需帳號，快速體驗</p>
+                <button onclick="loginAnonymously()" class="auth-btn" style="width: 100%; background: #9e7676;">匿名登入</button>
+            </div>
+            
+            <button onclick="closeLoginModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; color: #999; cursor: pointer;">×</button>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2025 情詩朗讀線上成果展 | 版權所有</p>
+    </footer>
+    <!-- 浮動登入卡片 靜態插入 -->
+    <div id="auth-fab" class="auth-fab-modern" tabindex="0"></div>
+    <div id="auth-panel-modern" class="auth-panel-modern"></div>
+    <div id="auth-panel-bg" class="auth-panel-bg" style="display:none;"></div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- 自訂腳本 -->
+    <script src="firebase-config.js"></script>
+    <script>
+      let currentUser = null;
+      window.currentProfile = null;
+      firebase.auth().onAuthStateChanged(async user => {
+        currentUser = user;
+        if (user) {
+          const users = await window.FirebaseService.getUsers();
+          // 轉換 users 結構為以 uid 為 key
+          let usersByUid = {};
+          Object.values(users || {}).forEach(u => {
+            if (u.uid) usersByUid[u.uid] = u;
+          });
+          window.currentProfile = Object.values(usersByUid||{}).find(u => u.uid === user.uid);
+        } else {
+          window.currentProfile = null;
+        }
+        renderExhibition();
+        renderModernAuth();
+      });
+      
+      // ====== cache 優化區塊 ======
+      function cacheExhibitionData(data) {
+        localStorage.setItem('exhibitionCache', JSON.stringify({ data, ts: Date.now() }));
+      }
+      function getExhibitionCache() {
+        const cache = localStorage.getItem('exhibitionCache');
+        if (!cache) return null;
+        try {
+          const { data, ts } = JSON.parse(cache);
+          if (Date.now() - ts < 5 * 60 * 1000) return data; // 5分鐘內有效
+        } catch(e) {}
+        return null;
+      }
+      function isDataEqual(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+      }
+      // ====== cache 優化區塊 end ======
+
+      // 動態渲染展覽區
+      async function renderExhibition(data) {
+        try {
+          let classes, groups, works, comments, users;
+          let usersByUid = {};
+          if (data) {
+            ({ classes, groups, works, comments, users } = data);
+            Object.values(users || {}).forEach(u => {
+              if (u.uid) usersByUid[u.uid] = u;
+            });
+          } else {
+            classes = await window.FirebaseService.getClasses();
+            groups = await window.FirebaseService.getGroups();
+            works = await window.FirebaseService.getWorks();
+            comments = await window.FirebaseService.getComments();
+            users = await window.FirebaseService.getUsers();
+            Object.values(users || {}).forEach(u => {
+              if (u.uid) usersByUid[u.uid] = u;
+            });
+            cacheExhibitionData({ classes, groups, works, comments, users });
+          }
+          
+          console.log('開始載入展覽資料...');
+          
+          // 產生班級按鈕
+          const classSelector = document.getElementById('class-selector');
+          const mainContent = document.getElementById('main-content');
+          
+          if (!classSelector || !mainContent) {
+            console.error('找不到必要的 DOM 元素');
+            return;
+          }
+          
+          classSelector.innerHTML = '';
+          mainContent.innerHTML = '';
+          
+          const classIds = Object.keys(classes || {});
+          console.log('班級列表:', classIds);
+          
+          if (classIds.length === 0) {
+            mainContent.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">暫無班級資料</div>';
+            return;
+          }
+          
+          classIds.forEach((classId, idx) => {
+            const classData = classes[classId];
+            if (!classData) return;
+            
+            // 建立班級按鈕
+            const btn = document.createElement('button');
+            btn.className = 'class-btn' + (idx === 0 ? ' active' : '');
+            btn.textContent = classData.name || classId;
+            btn.setAttribute('data-class', classId);
+            btn.onclick = () => {
+              document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              document.querySelectorAll('.works-container').forEach(c => c.classList.remove('active'));
+              const targetSection = document.getElementById('works-' + classId);
+              if (targetSection) targetSection.classList.add('active');
+            };
+            classSelector.appendChild(btn);
+            
+            // 建立內容區
+            const section = document.createElement('section');
+            section.className = 'works-container' + (idx === 0 ? ' active' : '');
+            section.id = 'works-' + classId;
+            
+            // 該班級所有組別
+            const allGroups = groups || {};
+            const classGroups = [];
+            
+            // 處理不同的資料結構
+            if (allGroups[classId]) {
+              // 結構：groups[classId][groupId]
+              classGroups.push(...Object.values(allGroups[classId]));
+            } else {
+              // 結構：groups[groupId] with classId field
+              Object.values(allGroups).forEach(group => {
+                if (group && group.classId === classId) {
+                  classGroups.push(group);
+                }
+              });
+            }
+            
+            console.log(`班級 ${classId} 的組別:`, classGroups);
+            
+            if (classGroups.length === 0) {
+              section.innerHTML = '<div style="text-align:center;padding:40px;color:#666;">暫無組別資料</div>';
+            } else {
+              classGroups.forEach(group => {
+                if (!group) return;
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'group-section';
+                groupDiv.innerHTML = `<div class="group-title">${group.name || '未命名組別'}</div>`;
+                
+                // 該組所有作品
+                const groupWorks = Object.values(works || {}).filter(w => 
+                  w && w.classId === classId && w.groupId === group.id && w.visible !== false
+                );
+                
+                console.log(`組別 ${group.id} 的作品數量:`, groupWorks.length);
+                
+                if (groupWorks.length === 0) {
+                  groupDiv.innerHTML += '<div style="color:#aaa;padding:20px;text-align:center;">（本組暫無作品）</div>';
+                } else {
+                  const worksGrid = document.createElement('div');
+                  worksGrid.className = 'works-grid';
+                  
+                  groupWorks.forEach(work => {
+                    if (!work) return;
+                    
+                    // 取得該作品的評論
+                    const workComments = Object.values(comments || {}).filter(c => 
+                      c && c.workId === work.id
+                    );
+                    
+                    // 建立作品卡片
+                    const workItem = document.createElement('div');
+                    workItem.className = 'work-item';
+                    
+                    const cardContent = document.createElement('div');
+                    cardContent.className = 'card-content';
+                    
+                    // 學生姓名
+                    const studentName = document.createElement('div');
+                    studentName.className = 'student-name';
+                    studentName.textContent = work.studentName || '未知學生';
+                    cardContent.appendChild(studentName);
+                    
+                    // 影片預覽
+                    const videoContainer = document.createElement('div');
+                    videoContainer.className = 'video-container';
+                    
+                    if (work.videoUrl) {
+                      const videoPreview = document.createElement('div');
+                      videoPreview.className = 'video-preview';
+                      videoPreview.style.background = '#222';
+                      videoPreview.style.borderRadius = '14px 14px 0 0';
+                      videoPreview.style.boxShadow = '0 2px 12px rgba(158,118,118,0.10)';
+                      videoPreview.style.transition = 'box-shadow 0.3s, transform 0.3s';
+                      videoPreview.style.overflow = 'hidden';
+                      videoPreview.style.position = 'relative';
+                      videoPreview.style.height = '0';
+                      videoPreview.style.paddingBottom = '56.25%';
+                      videoPreview.style.cursor = 'pointer';
+                      // 取得 YouTube ID
+                      const videoId = getYoutubeId(work.videoUrl);
+                      if (videoId) {
+                        // 預設用 maxresdefault，失敗 fallback hqdefault
+                        const thumbMax = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                        const thumbHQ = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                        const img = new window.Image();
+                        img.src = thumbMax;
+                        img.onload = function() {
+                          if (img.naturalWidth <= 120) {
+                            // maxresdefault 不存在
+                            videoPreview.style.backgroundImage = `url(${thumbHQ})`;
+                          } else {
+                            videoPreview.style.backgroundImage = `url(${thumbMax})`;
+                          }
+                        };
+                        img.onerror = function() {
+                          videoPreview.style.backgroundImage = `url(${thumbHQ})`;
+                        };
+                        // 預設先顯示 hqdefault，等 maxresdefault 載入成功再切換
+                        videoPreview.style.backgroundImage = `url(${thumbHQ})`;
+                        videoPreview.style.backgroundSize = 'cover';
+                        videoPreview.style.backgroundPosition = 'center';
+                        // 播放按鈕
+                        const playButton = document.createElement('div');
+                        playButton.className = 'play-button';
+                        playButton.style.cssText = `
+                          position: absolute;
+                          top: 50%;
+                          left: 50%;
+                          transform: translate(-50%, -50%);
+                          width: 60px;
+                          height: 40px;
+                          background: rgba(0,0,0,0.7);
+                          border-radius: 8px;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          color: white;
+                          font-size: 20px;
+                          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+                        `;
+                        playButton.innerHTML = '▶';
+                        videoPreview.appendChild(playButton);
+                        // hover 動畫
+                        videoPreview.onmouseenter = function() {
+                          videoPreview.style.boxShadow = '0 8px 32px rgba(158,118,118,0.18)';
+                          videoPreview.style.transform = 'translateY(-2px) scale(1.015)';
+                        };
+                        videoPreview.onmouseleave = function() {
+                          videoPreview.style.boxShadow = '0 2px 12px rgba(158,118,118,0.10)';
+                          videoPreview.style.transform = 'none';
+                        };
+                        videoPreview.onclick = function() {
+                          const loading = document.createElement('div');
+                          loading.className = 'loading-indicator';
+                          loading.style.cssText = `
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            color: white;
+                            font-size: 16px;
+                            z-index: 100;
+                          `;
+                          loading.textContent = '載入中...';
+                          videoContainer.appendChild(loading);
+                          const iframe = document.createElement('iframe');
+                          iframe.src = `${work.videoUrl}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+                          iframe.title = 'YouTube video player';
+                          iframe.frameBorder = '0';
+                          iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                          iframe.allowFullscreen = true;
+                          iframe.onload = function() { 
+                            if (loading.parentNode) loading.remove(); 
+                          };
+                          videoPreview.remove();
+                          videoContainer.appendChild(iframe);
+                        };
+                      }
+                      videoContainer.appendChild(videoPreview);
+                    } else {
+                      videoContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">無影片連結</div>';
+                    }
+                    
+                    cardContent.appendChild(videoContainer);
+                    
+                    // 作品標題
+                    const workTitle = document.createElement('div');
+                    workTitle.className = 'work-title';
+                    workTitle.textContent = work.title || '未命名作品';
+                    cardContent.appendChild(workTitle);
+                    
+                    workItem.appendChild(cardContent);
+                    
+                    // 評論互動區塊（每個作品都要有）
+                    renderCommentsSection(work, workItem, workComments);
+                    
+                    worksGrid.appendChild(workItem);
+                  });
+                  
+                  groupDiv.appendChild(worksGrid);
+                }
+                
+                section.appendChild(groupDiv);
+              });
+            }
+            
+            mainContent.appendChild(section);
+          });
+          console.log('展覽渲染完成');
+          window._exhibitionCacheUsers = usersByUid;
+          window._exhibitionCacheClasses = classes;
+          window._exhibitionCacheGroups = groups;
+        } catch (error) {
+          console.error('渲染展覽失敗:', error);
+          const mainContent = document.getElementById('main-content');
+          if (mainContent) {
+            mainContent.innerHTML = `
+              <div style="text-align:center;padding:40px;color:#666;">
+                <h3>載入失敗</h3>
+                <p>無法載入展覽資料，請檢查網路連線或稍後再試。</p>
+                <p style="font-size:12px;margin-top:20px;">錯誤詳情: ${error.message}</p>
+              </div>
+            `;
+          }
+        }
+      }
+      
+      // ====== 頁面載入時先用 cache，再抓新資料 ======
+      document.addEventListener('DOMContentLoaded', function() {
+        let cache = getExhibitionCache();
+        if (cache) {
+          renderExhibition(cache);
+        }
+        (async()=>{
+          const classes = await window.FirebaseService.getClasses();
+          const groups = await window.FirebaseService.getGroups();
+          const works = await window.FirebaseService.getWorks();
+          const comments = await window.FirebaseService.getComments();
+          const users = await window.FirebaseService.getUsers();
+          const newData = { classes, groups, works, comments, users };
+          if (!cache || !isDataEqual(cache, newData)) {
+            cacheExhibitionData(newData);
+            renderExhibition(newData);
+          } else {
+            // 只更新 cache 時間
+            cacheExhibitionData(newData);
+          }
+        })();
+      });
+
+      // ====== 浮動登入卡片 HTML 結構初始化 ======
+      // (function(){
+      //   if (!document.getElementById('auth-fab')) {
+      //     const fabHtml = `
+      //       <div id="auth-fab" class="auth-fab-modern" tabindex="0"></div>
+      //       <div id="auth-panel-modern" class="auth-panel-modern" style="display:flex;"></div>
+      //       <div id="auth-panel-bg" class="auth-panel-bg" style="display:none;"></div>
+      //     `;
+      //     document.body.insertAdjacentHTML('beforeend', fabHtml);
+      //   }
+      // })();
+      // ====== 浮動登入卡片互動控制 ======
+      function showModernAuthPanel() {
+        document.getElementById('auth-panel-modern').classList.add('open');
+        document.getElementById('auth-panel-bg').style.display = 'block';
+      }
+      function hideModernAuthPanel() {
+        document.getElementById('auth-panel-modern').classList.remove('open');
+        document.getElementById('auth-panel-bg').style.display = 'none';
+      }
+      function setupModernAuthFabEvents() {
+        const fab = document.getElementById('auth-fab');
+        const panel = document.getElementById('auth-panel-modern');
+        const bg = document.getElementById('auth-panel-bg');
+        if (fab && panel && bg) {
+          fab.onclick = function(e) {
+            if (panel.classList.contains('open')) {
+              hideModernAuthPanel();
+            } else {
+              showModernAuthPanel();
+            }
+            e.stopPropagation();
+          };
+          bg.onclick = hideModernAuthPanel;
+          // 點擊外部收回
+          document.addEventListener('click', function(e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== fab) {
+              hideModernAuthPanel();
+            }
+          });
+          // ESC 收回
+          document.addEventListener('keydown', e => { if (panel.classList.contains('open') && e.key==='Escape') hideModernAuthPanel(); });
+        }
+      }
+      // 頁面載入後初始化事件
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupModernAuthFabEvents);
+      } else {
+        setupModernAuthFabEvents();
+      }
+
+      // 移除原有 #auth-container 內容與 CSS，改為現代浮動卡片
+      // 1. HTML 結構：在 body 結尾插入 auth-fab、auth-panel-modern、auth-panel-bg
+      // const fabHtml = `
+      //   <div id="auth-fab" class="auth-fab-modern" tabindex="0"></div>
+      //   <div id="auth-panel-modern" class="auth-panel-modern" style="display:none;"></div>
+      //   <div id="auth-panel-bg" class="auth-panel-bg" style="display:none;"></div>
+      // `;
+      // document.body.insertAdjacentHTML('beforeend', fabHtml);
+
+      // 2. CSS
+      const modernAuthCss = document.createElement('style');
+      modernAuthCss.innerHTML = `
+      .auth-fab-modern {
+        position: fixed; top: 24px; right: 24px; z-index: 2000;
+        width: 60px; height: 60px; border-radius: 50%;
+        background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
+        color: #fff; font-size: 2em; font-weight: bold;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 24px #b6868640;
+        cursor: pointer; transition: box-shadow 0.2s, transform 0.2s;
+      }
+      .auth-fab-modern:hover { box-shadow: 0 12px 32px #b6868680; transform: scale(1.08);}
+      .auth-panel-bg {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.12); z-index: 1999; backdrop-filter: blur(2px);
+      }
+      .auth-panel-modern {
+        position: fixed; top: 20px; right: 90px; z-index: 2001;
+        background: #fff; border-radius: 50px; box-shadow: 0 8px 32px #b6868640;
+        padding: 0 2.2rem; min-width: 400px; min-height: 70px; max-width: 90vw;
+        display: flex; flex-direction: row; align-items: center; gap: 1.1rem;
+        transform: translateX(80%) scale(0.85);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          transform 0.55s cubic-bezier(.4,0,.2,1),
+          opacity 0.38s cubic-bezier(.4,0,.2,1),
+          box-shadow 0.38s cubic-bezier(.4,0,.2,1);
+      }
+      .auth-panel-modern.open {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+        pointer-events: auto;
+        box-shadow: 0 16px 48px #b6868680;
+      }
+      .auth-panel-avatar {
+        width: 56px; height: 56px; border-radius: 50%;
+        background: #e8c4c4; color: #fff; font-size: 2em; font-weight: bold;
+        display: flex; align-items: center; justify-content: center;
+        margin-right: 0.5rem;
+      }
+      .auth-panel-info {
+        display: flex; flex-direction: column; align-items: flex-start; min-width: 120px;
+      }
+      .auth-panel-name { font-weight: 700; color: #9e7676; font-size: 1.1em; }
+      .auth-panel-meta { color: #888; font-size: 0.98em; margin-top: 2px; }
+      .auth-panel-btns {
+        display: flex; flex-direction: row; gap: 0.7em; margin-left: auto;
+      }
+      .auth-btn-modern {
+        padding: 0.6em 1.2em; border-radius: 20px; border: none;
+        background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
+        color: #fff; font-size: 1em; font-weight: 500;
+        display: flex; align-items: center; gap: 0.5em;
+        cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+      }
+      .auth-btn-modern.logout { background: linear-gradient(135deg, #e88, #b77);}
+      .auth-btn-modern:hover { box-shadow: 0 2px 12px #b6868640;}
+      @media (max-width: 600px) {
+        .auth-fab-modern {
+          width: 44px; height: 44px; font-size: 1.2em; top: 8px; right: 8px;
+        }
+        .auth-panel-modern {
+          position: fixed;
+          top: 56px;
+          left: 0;
+          right: 0;
+          margin: 0 auto;
+          width: 96vw;
+          max-width: 420px;
+          min-width: 0;
+          padding: 0.7rem 0.7rem 0.5rem 0.7rem;
+          border-radius: 22px;
+          min-height: 0;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.5rem;
+          transform: translateY(-40%) scale(0.95);
+          opacity: 0;
+          pointer-events: none;
+          transition:
+            transform 0.5s cubic-bezier(.4,0,.2,1),
+            opacity 0.32s cubic-bezier(.4,0,.2,1),
+            box-shadow 0.32s cubic-bezier(.4,0,.2,1);
+        }
+        .auth-panel-modern.open {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+          pointer-events: auto;
+          box-shadow: 0 8px 32px #b6868680;
+        }
+        .auth-panel-avatar {
+          width: 36px; height: 36px; font-size: 1em;
+          margin: 0 auto 0.2rem auto;
+        }
+        .auth-panel-info {
+          min-width: 0;
+          font-size: 0.95em;
+          align-items: center;
+          text-align: center;
+          margin-bottom: 0.2rem;
+        }
+        .auth-panel-name { font-size: 1em; }
+        .auth-panel-meta { font-size: 0.9em; }
+        .auth-panel-btns {
+          gap: 0.3em;
+          flex-wrap: wrap;
+          margin-left: 0;
+          justify-content: center;
+          display: flex;
+        }
+        .auth-btn-modern {
+          padding: 0.38em 0.7em;
+          font-size: 0.92em;
+          border-radius: 13px;
+        }
+      }
+      `;
+      document.head.appendChild(modernAuthCss);
+
+      // 3. JS 控制
+      function renderModernAuth() {
+        const fab = document.getElementById('auth-fab');
+        const panel = document.getElementById('auth-panel-modern');
+        const bg = document.getElementById('auth-panel-bg');
+        const isLogin = !!currentUser;
+        // FAB 內容
+        let avatar = '🔑';
+        if (isLogin) avatar = (currentUser.displayName||currentUser.email||'')[0] || '👤';
+        fab.innerHTML = `<span>${avatar}</span>`;
+        // 面板內容
+        if (isLogin && window.currentProfile) {
+          const classes = window._exhibitionCacheClasses || {};
+          const groups = window._exhibitionCacheGroups || {};
+          const className = classes[window.currentProfile.classId]?.name || window.currentProfile.classId || '';
+          const groupName = groups[window.currentProfile.groupId]?.name || window.currentProfile.groupId || '';
+          const studentId = window.currentProfile.studentId || '';
+          const avatarBig = (window.currentProfile.name||currentUser.email||'')[0] || '👤';
+          panel.innerHTML = `
+            <div class="auth-panel-avatar">${avatarBig}</div>
+            <div class="auth-panel-info">
+              <div class="auth-panel-name">${window.currentProfile.name || currentUser.email || '未知'}</div>
+              <div class="auth-panel-meta">
+                ${className ? `<span>${className}</span>` : ''}
+                ${studentId ? `｜<span>${studentId}</span>` : ''}
+                ${groupName ? `｜<span>${groupName}</span>` : ''}
+              </div>
+            </div>
+            <div class="auth-panel-btns">
+              <button class="auth-btn-modern" onclick="window.location.href='profile.html'"><span>個人專區</span></button>
+              <button class="auth-btn-modern logout" onclick="firebase.auth().signOut()"><span>登出</span></button>
+            </div>
+          `;
+        } else {
+          panel.innerHTML = `
+            <div class="auth-panel-avatar">🔑</div>
+            <div class="auth-panel-info">
+              <div class="auth-panel-name">未登入</div>
+              <div class="auth-panel-meta">請先登入以管理作品</div>
+            </div>
+            <div class="auth-panel-btns">
+              <button class="auth-btn-modern" onclick="showLoginModal()"><span>登入 / 註冊</span></button>
+            </div>
+          `;
+        }
+        panel.classList.remove('open'); // 預設收合
+        document.getElementById('auth-panel-bg').style.display = 'none';
+      }
+      function showModernAuthPanel() {
+        document.getElementById('auth-panel-modern').classList.add('open');
+        document.getElementById('auth-panel-bg').style.display = 'block';
+      }
+      function hideModernAuthPanel() {
+        document.getElementById('auth-panel-modern').classList.remove('open');
+        document.getElementById('auth-panel-bg').style.display = 'none';
+      }
+      setTimeout(()=>{
+        const fab = document.getElementById('auth-fab');
+        const panel = document.getElementById('auth-panel-modern');
+        const bg = document.getElementById('auth-panel-bg');
+        if (fab && panel && bg) {
+          fab.onclick = function(e) {
+            if (panel.classList.contains('open')) {
+              hideModernAuthPanel();
+            } else {
+              showModernAuthPanel();
+            }
+            e.stopPropagation();
+          };
+          bg.onclick = hideModernAuthPanel;
+          // 點擊外部收回
+          document.addEventListener('click', function(e) {
+            if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== fab) {
+              hideModernAuthPanel();
+            }
+          });
+          // ESC 收回
+          document.addEventListener('keydown', e => { if (panel.classList.contains('open') && e.key==='Escape') hideModernAuthPanel(); });
+        }
+      }, 500);
+      // 登入狀態變化時渲染
+      if (window.firebase && window.firebase.auth) {
+        window.firebase.auth().onAuthStateChanged(user => {
+          renderModernAuth();
+          hideModernAuthPanel();
+        });
+      }
+      // 展覽資料載入後也要渲染
+      function afterExhibitionLoaded() { renderModernAuth(); }
+
+      // 顯示登入 Modal
+      function showLoginModal() {
+        const modal = document.getElementById('login-modal');
+        if (modal) {
+          modal.style.display = 'block';
+        }
+      }
+      
+      // 關閉登入 Modal
+      function closeLoginModal() {
+        const modal = document.getElementById('login-modal');
+        if (modal) {
+          modal.style.display = 'none';
+        }
+      }
+      
+      // 切換登入/註冊標籤
+      function switchLoginTab(tabName) {
+        // 隱藏所有表單
+        document.querySelectorAll('#login-modal .login-form').forEach(form => {
+          form.style.display = 'none';
+        });
+        // 移除所有標籤的 active 類
+        document.querySelectorAll('#login-modal .tab-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        // 顯示對應的表單和標籤
+        if(tabName==='email') {
+          document.getElementById('email-form').style.display = 'block';
+        } else if(tabName==='google') {
+          document.getElementById('google-form').style.display = 'block';
+        } else if(tabName==='anonymous') {
+          document.getElementById('anonymous-form').style.display = 'block';
+        }
+        document.getElementById(tabName+'-tab').classList.add('active');
+        // 切回登入表單
+        showLoginForm();
+      }
+      // 顯示註冊表單
+      function showRegisterForm() {
+        document.getElementById('email-form').style.display = 'none';
+        document.getElementById('register-form-wrap').style.display = 'block';
+        // 載入班級/組別
+        loadClassAndGroupOptions();
+      }
+      // 顯示登入表單
+      function showLoginForm() {
+        document.getElementById('register-form-wrap').style.display = 'none';
+        document.getElementById('email-form').style.display = 'block';
+      }
+      // 載入班級/組別下拉
+      async function loadClassAndGroupOptions() {
+        const classSel = document.getElementById('reg-class-modal');
+        const groupSel = document.getElementById('reg-group-modal');
+        let allClasses = {};
+        let allGroups = {};
+        try {
+          allClasses = await window.FirebaseService.getClasses();
+          classSel.innerHTML = '<option value="">請選擇班級</option>';
+          Object.values(allClasses).forEach(cls => {
+            classSel.innerHTML += `<option value="${cls.id}">${cls.name}（${cls.year||''}）</option>`;
+          });
+        } catch (err) {
+          classSel.innerHTML = '<option value="">載入失敗</option>';
+        }
+        allGroups = await window.FirebaseService.getGroups();
+        classSel.onchange = function() {
+          const classId = classSel.value;
+          groupSel.innerHTML = '<option value="">請選擇組別</option>';
+          Object.values(allGroups).filter(g => g.classId === classId).forEach(g => {
+            groupSel.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+          });
+        };
+      }
+      // 註冊送出
+      document.addEventListener('DOMContentLoaded', function() {
+        const regForm = document.getElementById('register-form-modal');
+        if(regForm) {
+          regForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('reg-email-modal').value.trim();
+            const password = document.getElementById('reg-password-modal').value;
+            const name = document.getElementById('reg-name-modal').value.trim();
+            const studentId = document.getElementById('reg-studentid-modal').value.trim();
+            const classId = document.getElementById('reg-class-modal').value;
+            const groupId = document.getElementById('reg-group-modal').value;
+            if (!email || !password || !name || !studentId || !classId || !groupId) {
+              alert('請完整填寫所有欄位');
+              return;
+            }
+            try {
+              // 建立 Auth 帳號
+              const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+              // 寫入 users 節點
+              await window.FirebaseService.addUser({
+                uid: result.user.uid,
+                email,
+                name,
+                studentId,
+                classId,
+                groupId,
+                role: 'student',
+                createdAt: new Date().toISOString()
+              });
+              alert('註冊成功！');
+              showLoginForm();
+            } catch (err) {
+              alert('註冊失敗：' + err.message);
+            }
+          };
+        }
+      });
+      // Email 登入
+      function doLoginWithEmail() {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        if (!email || !password) {
+          alert('請輸入 Email 和密碼');
+          return;
+        }
+        firebase.auth().signInWithEmailAndPassword(email, password)
+          .then(() => {
+            alert('登入成功！');
+            closeLoginModal();
+          })
+          .catch(error => {
+            alert('登入失敗：' + error.message);
+          });
+      }
+      
+      // Google 登入
+      async function loginWithGoogle() {
+        try {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          const result = await firebase.auth().signInWithPopup(provider);
+          
+          // 自動補齊用戶資料
+          await window.FirebaseService.addUser({
+            uid: result.user.uid,
+            email: result.user.email,
+            name: result.user.displayName || result.user.email.split('@')[0],
+            role: 'student',
+            createdAt: new Date().toISOString()
+          });
+          
+          alert('Google 登入成功！');
+          setTimeout(closeLoginModal, 1500);
+        } catch (error) {
+          alert('Google 登入失敗：' + error.message);
+        }
+      }
+      
+      // 匿名登入
+      async function loginAnonymously() {
+        try {
+          const result = await firebase.auth().signInAnonymously();
+          
+          // 自動補齊用戶資料
+          await window.FirebaseService.addUser({
+            uid: result.user.uid,
+            email: 'anonymous@example.com',
+            name: '匿名用戶',
+            role: 'student',
+            createdAt: new Date().toISOString()
+          });
+          
+          alert('匿名登入成功！');
+          setTimeout(closeLoginModal, 1500);
+        } catch (error) {
+          alert('匿名登入失敗：' + error.message);
+        }
+      }
+      
+      // 點擊 Modal 背景關閉
+      document.addEventListener('click', function(e) {
+        const modal = document.getElementById('login-modal');
+        if (e.target === modal) {
+          closeLoginModal();
+        }
+      });
+
+      // 將評論區塊渲染邏輯抽成 function
+      function renderCommentsSection(work, workItem, workComments) {
+        // 先移除舊的 commentsSection
+        const oldSection = workItem.querySelector('.comments-section');
+        if (oldSection) oldSection.remove();
+
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+
+        // 平均星等
+        const avgRating = workComments.length > 0 ? (workComments.reduce((sum, c) => sum + (c.rating || 0), 0) / workComments.length).toFixed(1) : null;
+        const avgStars = avgRating ? '★'.repeat(Math.round(avgRating)) + '☆'.repeat(5 - Math.round(avgRating)) : '';
+        const avgRatingDiv = document.createElement('div');
+        avgRatingDiv.style.cssText = 'padding:8px 12px;color:#b77;font-weight:600;display:flex;align-items:center;gap:12px;';
+        avgRatingDiv.innerHTML = avgRating ? `平均星等：<span class=\"rating-stars\">${avgStars}</span> <span style=\"color:#888;font-size:0.95em;\">${avgRating} / 5</span>` : '<span style=\"color:#aaa;\">尚無評分</span>';
+        commentsSection.appendChild(avgRatingDiv);
+
+        // 『留言』按鈕
+        const showFormBtn = document.createElement('button');
+        showFormBtn.className = 'auth-btn';
+        showFormBtn.textContent = '留言';
+        showFormBtn.style.margin = '8px 0 0 12px';
+        showFormBtn.style.display = currentUser ? '' : 'none';
+        commentsSection.appendChild(showFormBtn);
+
+        // 評論表單（預設隱藏，且只建立一次）
+        const commentFormDiv = document.createElement('div');
+        commentFormDiv.className = 'comment-form';
+        commentFormDiv.style.cssText = 'padding:12px 0 0 0;border-top:1px solid #eee;display:none;';
+        if (!currentUser) {
+          commentFormDiv.innerHTML = '<div style="color:#888;text-align:center;">請先登入才能評論</div>';
+        } else {
+          const myComment = workComments.find(c => c.reviewerId === currentUser.uid);
+          let rating = myComment ? myComment.rating : 0;
+          let content = myComment ? myComment.content : '';
+          const form = document.createElement('form');
+          form.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;';
+          const starsDiv = document.createElement('div');
+          starsDiv.style.cssText = 'font-size:1.5em;color:#e8c4c4;cursor:pointer;';
+          function renderStars() {
+            starsDiv.innerHTML = '';
+            for(let i=1;i<=5;i++){
+              const star = document.createElement('span');
+              star.textContent = i <= rating ? '★' : '☆';
+              star.style.margin = '0 2px';
+              star.onclick = ()=>{ rating=i; renderStars(); };
+              starsDiv.appendChild(star);
+            }
+          }
+          renderStars();
+          form.appendChild(starsDiv);
+          const textarea = document.createElement('textarea');
+          textarea.value = content;
+          textarea.placeholder = '請輸入評論...';
+          textarea.style.cssText = 'width:100%;max-width:340px;min-height:48px;border-radius:6px;border:1px solid #ccc;padding:6px 10px;resize:vertical;';
+          form.appendChild(textarea);
+          const submitBtn = document.createElement('button');
+          submitBtn.type = 'submit';
+          submitBtn.className = 'auth-btn';
+          submitBtn.textContent = myComment ? '修改評論' : '送出評論';
+          form.appendChild(submitBtn);
+          form.onsubmit = async (e) => {
+            e.preventDefault();
+            if (rating < 1 || rating > 5) { alert('請選擇星等（1~5顆）'); return; }
+            if (!textarea.value.trim()) { alert('請輸入評論內容'); return; }
+            submitBtn.disabled = true;
+            try {
+              await window.FirebaseService.addOrUpdateComment({
+                workId: work.id,
+                reviewerId: currentUser.uid,
+                reviewerName: window.currentProfile?.name || currentUser.email || '匿名',
+                reviewerClass: window.currentProfile?.classId || '',
+                content: textarea.value.trim(),
+                rating: rating
+              });
+              alert('評論已送出！');
+              commentFormDiv.style.display = 'none';
+              // 只刷新該卡片留言區
+              const allComments = await window.FirebaseService.getComments();
+              const newWorkComments = Object.values(allComments || {}).filter(c => c && c.workId === work.id);
+              renderCommentsSection(work, workItem, newWorkComments);
+            } catch (err) {
+              alert('送出失敗：' + err.message);
+            }
+            submitBtn.disabled = false;
+          };
+          commentFormDiv.appendChild(form);
+        }
+        commentsSection.appendChild(commentFormDiv);
+        showFormBtn.onclick = () => {
+          commentFormDiv.style.display = commentFormDiv.style.display === 'none' ? '' : 'none';
+        };
+
+        // 留言串（thread，預設收合）
+        if (workComments.length > 0) {
+          const commentsHeader = document.createElement('div');
+          commentsHeader.className = 'comments-header';
+          commentsHeader.style.cssText = 'padding: 8px 12px; background: #f8f8f8; border-top: 1px solid #eee; cursor:pointer;';
+          const commentsTitle = document.createElement('div');
+          commentsTitle.className = 'comments-title';
+          commentsTitle.innerHTML = `<span>留言串</span><span class=\"comments-count\">${workComments.length}</span> <span class=\"toggle-arrow\" style=\"margin-left:8px;\">▶</span>`;
+          commentsHeader.appendChild(commentsTitle);
+          commentsSection.appendChild(commentsHeader);
+          const commentsContent = document.createElement('div');
+          commentsContent.className = 'comments-content';
+          commentsContent.style.background = '#fff';
+          commentsContent.style.padding = '12px';
+          commentsContent.style.display = 'none';
+          const commentsList = document.createElement('div');
+          commentsList.className = 'comments-list';
+          // 取得所有用戶資料、班級、組別
+          const users = window._exhibitionCacheUsers || {};
+          const classes = window._exhibitionCacheClasses || {};
+          const groups = window._exhibitionCacheGroups || {};
+          workComments.forEach(comment => {
+            const commentElement = document.createElement('div');
+            commentElement.className = 'comment';
+            commentElement.style.cssText = 'border-bottom: 1px solid #eee; padding: 8px 0; margin-bottom: 8px;';
+            const commentHeader = document.createElement('div');
+            commentHeader.className = 'comment-header';
+            commentHeader.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 12px; color: #666;';
+            const commenterInfo = document.createElement('div');
+            commenterInfo.className = 'commenter-info';
+            const ratingStars = '★'.repeat(comment.rating || 0) + '☆'.repeat(5-(comment.rating || 0));
+            // 取得 reviewerId 對應的 user
+            const user = users[comment.reviewerId] || {};
+            const className = classes[user.classId]?.name || user.classId || '';
+            const groupName = groups[user.groupId]?.name || user.groupId || '';
+            const studentId = user.studentId || '';
+            commenterInfo.innerHTML = `
+              <span class=\"commenter-name\">${comment.reviewerName || '匿名'}</span>
+              <span class=\"commenter-meta\" style=\"margin-left:8px;color:#b68686;font-size:0.98em;\">
+                ${className ? `<span class=\"commenter-class\">${className}</span>` : ''}
+                ${studentId ? `<span class=\"commenter-studentid\" style=\"margin-left:6px;\">學號:${studentId}</span>` : ''}
+                ${groupName ? `<span class=\"commenter-group\" style=\"margin-left:6px;\">${groupName}</span>` : ''}
+              </span>
+              <span class=\"rating-stars\" title=\"${comment.rating || 0}分\" style=\"margin-left:10px;\">${ratingStars}</span>
+            `;
+            commentHeader.appendChild(commenterInfo);
+            commentElement.appendChild(commentHeader);
+            const commentContent = document.createElement('div');
+            commentContent.className = 'comment-content';
+            commentContent.textContent = comment.content || '';
+            commentContent.style.cssText = 'font-size: 14px; line-height: 1.4; color: #333;';
+            commentElement.appendChild(commentContent);
+            // ====== 管理員刪除評論按鈕 ======
+            if (window.currentProfile && window.currentProfile.role === 'admin') {
+              const delBtn = document.createElement('button');
+              delBtn.className = 'auth-btn';
+              delBtn.style.background = '#e88';
+              delBtn.style.marginLeft = '8px';
+              delBtn.textContent = '刪除';
+              delBtn.onclick = async function() {
+                if (!confirm('確定要刪除這則評論？')) return;
+                try {
+                  await firebase.database().ref('comments/' + comment.id).remove();
+                  alert('已刪除！');
+                  // 只刷新該卡片留言區
+                  const allComments = await window.FirebaseService.getComments();
+                  const newWorkComments = Object.values(allComments || {}).filter(c => c && c.workId === work.id);
+                  renderCommentsSection(work, workItem, newWorkComments);
+                } catch (err) {
+                  alert('刪除失敗：' + err.message);
+                }
+              };
+              commentElement.appendChild(delBtn);
+            }
+            commentsList.appendChild(commentElement);
+          });
+          commentsContent.appendChild(commentsList);
+          commentsSection.appendChild(commentsContent);
+          commentsHeader.onclick = function() {
+            const arrow = commentsHeader.querySelector('.toggle-arrow');
+            if (commentsContent.style.display === 'none') {
+              commentsContent.style.display = '';
+              if (arrow) arrow.textContent = '▼';
+            } else {
+              commentsContent.style.display = 'none';
+              if (arrow) arrow.textContent = '▶';
+            }
+          };
+        }
+        workItem.appendChild(commentsSection);
+      }
+
+      // 取得 YouTube ID（支援多種格式）
+      function getYoutubeId(url) {
+        let id = '';
+        if (!url) return '';
+        if (url.includes('youtu.be/')) {
+          id = url.split('youtu.be/')[1].split(/[?&]/)[0];
+        } else if (url.includes('watch?v=')) {
+          id = url.split('watch?v=')[1].split(/[?&]/)[0];
+        } else if (url.includes('/embed/')) {
+          id = url.split('/embed/')[1].split(/[?&]/)[0];
+        }
+        return id;
+      }
+    </script>
+</body>
+</html>
