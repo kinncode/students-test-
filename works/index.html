@@ -495,6 +495,9 @@
           border-radius: 13px;
         }
       }
+      .year-selector { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+      .year-btn { padding: 0.6em 1.4em; border-radius: 20px; border: none; background: #fff; color: #b68686; font-size: 1em; font-weight: 500; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px #b6868620; }
+      .year-btn.active, .year-btn:hover { background: #b68686; color: #fff; box-shadow: 0 4px 16px #b6868640; }
     </style>
 </head>
 <body>
@@ -506,6 +509,7 @@
             </div>
             <!-- <div id="auth-container" class="auth-container"></div> -->
         </div>
+        <div id="year-selector" class="year-selector" style="display:flex;gap:10px;justify-content:center;margin:18px 0 0 0;"></div>
         <nav class="class-selector" id="class-selector"></nav>
     </header>
     <main id="main-content"></main>
@@ -1127,8 +1131,8 @@
         if (isLogin && window.currentProfile) {
           const classes = window._exhibitionCacheClasses || {};
           const groups = window._exhibitionCacheGroups || {};
-          const className = classes[window.currentProfile.classId]?.name || window.currentProfile.classId || '';
-          const groupName = groups[window.currentProfile.groupId]?.name || window.currentProfile.groupId || '';
+          const className = classes[window.currentProfile.classId]?.name || '';
+          const groupName = groups[window.currentProfile.groupId]?.name || '';
           const studentId = window.currentProfile.studentId || '';
           const avatarBig = (window.currentProfile.name||currentUser.email||'')[0] || '👤';
           panel.innerHTML = `
@@ -1263,6 +1267,7 @@
           allClasses = await window.FirebaseService.getClasses();
           classSel.innerHTML = '<option value="">請選擇班級</option>';
           Object.values(allClasses).forEach(cls => {
+            if (cls.visible === false) return; // 跳過隱藏班級
             classSel.innerHTML += `<option value="${cls.id}">${cls.name}（${cls.year||''}）</option>`;
           });
         } catch (err) {
@@ -1283,23 +1288,22 @@
         if(regForm) {
           regForm.onsubmit = async function(e) {
             e.preventDefault();
+            const isGoogle = regForm.getAttribute('data-google') === '1';
             const email = document.getElementById('reg-email-modal').value.trim();
-            const password = document.getElementById('reg-password-modal').value;
             const name = document.getElementById('reg-name-modal').value.trim();
             const studentId = document.getElementById('reg-studentid-modal').value.trim();
             const classId = document.getElementById('reg-class-modal').value;
             const groupId = document.getElementById('reg-group-modal').value;
-            if (!email || !password || !name || !studentId || !classId || !groupId) {
+            if (!name || !studentId || !classId || !groupId) {
               alert('請完整填寫所有欄位');
               return;
             }
-            try {
-              // 建立 Auth 帳號
-              const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
-              // 寫入 users 節點
+            if (isGoogle) {
+              // 取得目前登入的 Google user
+              const user = firebase.auth().currentUser;
               await window.FirebaseService.addUser({
-                uid: result.user.uid,
-                email,
+                uid: user.uid,
+                email: user.email,
                 name,
                 studentId,
                 classId,
@@ -1307,16 +1311,40 @@
                 role: 'student',
                 createdAt: new Date().toISOString()
               });
-              alert('註冊成功！');
+              alert('資料已補齊，登入成功！');
+              regForm.setAttribute('data-google', '');
               showLoginForm();
-            } catch (err) {
-              alert('註冊失敗：' + err.message);
+              closeLoginModal();
+            } else {
+              try {
+                const password = document.getElementById('reg-password-modal').value;
+                if (!email || !password) {
+                  alert('請輸入 Email 和密碼');
+                  return;
+                }
+                const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                await window.FirebaseService.addUser({
+                  uid: result.user.uid,
+                  email,
+                  name,
+                  studentId,
+                  classId,
+                  groupId,
+                  role: 'student',
+                  createdAt: new Date().toISOString()
+                });
+                alert('註冊成功！');
+                showLoginForm();
+                closeLoginModal();
+              } catch (err) {
+                alert('註冊失敗：' + err.message);
+              }
             }
           };
         }
-      });
+      
       // Email 登入
-      function doLoginWithEmail() {
+      window.doLoginWithEmail = function() {
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
         if (!email || !password) {
@@ -1332,24 +1360,23 @@
             alert('登入失敗：' + error.message);
           });
       }
+    });
       
       // Google 登入
       async function loginWithGoogle() {
         try {
           const provider = new firebase.auth.GoogleAuthProvider();
           const result = await firebase.auth().signInWithPopup(provider);
-          
-          // 自動補齊用戶資料
-          await window.FirebaseService.addUser({
-            uid: result.user.uid,
-            email: result.user.email,
-            name: result.user.displayName || result.user.email.split('@')[0],
-            role: 'student',
-            createdAt: new Date().toISOString()
-          });
-          
-          alert('Google 登入成功！');
-          setTimeout(closeLoginModal, 1500);
+          const uid = result.user.uid;
+          // 查 users 有沒有這個 uid
+          const userProfile = await window.FirebaseService.getCurrentUserProfile(uid);
+          if (userProfile) {
+            alert('Google 登入成功！');
+            setTimeout(closeLoginModal, 1500);
+          } else {
+            // 沒有資料，顯示補齊表單
+            showGoogleRegisterForm(result.user);
+          }
         } catch (error) {
           alert('Google 登入失敗：' + error.message);
         }
@@ -1581,6 +1608,26 @@
           id = url.split('/embed/')[1].split(/[?&]/)[0];
         }
         return id;
+      }
+
+      function showGoogleRegisterForm(user) {
+        // 顯示註冊表單
+        document.getElementById('email-form').style.display = 'none';
+        document.getElementById('register-form-wrap').style.display = 'block';
+        // 隱藏 email/password 欄位
+        document.getElementById('reg-email-modal').value = user.email || '';
+        document.getElementById('reg-email-modal').readOnly = true;
+        document.getElementById('reg-email-modal').parentElement.style.display = 'none';
+        document.getElementById('reg-password-modal').parentElement.style.display = 'none';
+        // 預設填入 Google 名字
+        document.getElementById('reg-name-modal').value = user.displayName || user.email.split('@')[0];
+        // 其餘欄位清空
+        document.getElementById('reg-studentid-modal').value = '';
+        document.getElementById('reg-class-modal').value = '';
+        document.getElementById('reg-group-modal').value = '';
+        // 標記是 Google 補齊模式
+        document.getElementById('register-form-modal').setAttribute('data-google', '1');
+        loadClassAndGroupOptions();
       }
     </script>
 </body>

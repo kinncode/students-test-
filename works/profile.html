@@ -174,18 +174,6 @@
       border: 1.5px solid #b77;
       outline: none;
     }
-    .auth-modal-content button.auth-btn {
-      background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
-      color: #fff;
-      border: none;
-      border-radius: 20px;
-      padding: 0.7em 1.2em;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 1em;
-      margin-top: 8px;
-    }
     .auth-modal-content button.auth-btn:hover {
       background: linear-gradient(135deg, #d3a5a5, #e8c4c4);
       box-shadow: 0 2px 8px #b6868640;
@@ -248,6 +236,139 @@
       z-index: 100000 !important;
       pointer-events: auto;
     }
+    @media (max-width: 600px) {
+      .admin-card table,
+      .admin-card .class-table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        font-size: 0.95em;
+      }
+      .admin-card th, .admin-card td {
+        min-width: 90px;
+        padding: 6px 6px;
+      }
+    }
+    #edit-student-modal {
+      z-index: 100000 !important;
+    }
+    #edit-student-modal .modal-content {
+      background: #fff7f7;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px #b6868620;
+      padding: 32px 24px 24px 24px;
+      max-width: 350px;
+      width: 92vw;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+
+    }
+    #edit-student-modal h2 {
+      color: #b77;
+      font-size: 1.25em;
+      margin-bottom: 18px;
+      text-align: center;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+    #edit-student-modal label {
+      color: #b77;
+      font-weight: 500;
+      margin-bottom: 4px;
+      display: block;
+    }
+    #edit-student-modal input,
+    #edit-student-modal select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1.5px solid #e8c4c4;
+      margin-bottom: 16px;
+      font-size: 1em;
+      background: #fff;
+      transition: border 0.2s;
+      color: #b77;
+    }
+    #edit-student-modal input:focus,
+    #edit-student-modal select:focus {
+      border: 1.5px solid #b77;
+      outline: none;
+    }
+    #edit-student-modal .auth-btn {
+      background: linear-gradient(135deg, #e8c4c4, #d3a5a5);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 0.7em 1.2em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1em;
+      margin-top: 8px;
+      margin-bottom: 0;
+      box-shadow: 0 2px 8px #b6868640;
+      width: 100%;
+      display: block;
+    }
+    #edit-student-modal .auth-btn:hover {
+      background: linear-gradient(135deg, #d3a5a5, #e8c4c4);
+      box-shadow: 0 4px 16px #b6868640;
+    }
+    #edit-student-modal .auth-btn:last-child {
+      background: #ccc;
+      color: #555;
+    }
+    @media (max-width: 600px) {
+      #edit-student-modal .modal-content {
+        padding: 18px 6px 12px 6px;
+        border-radius: 10px;
+        max-width: 98vw;
+      }
+      #edit-student-modal input,
+      #edit-student-modal select {
+        padding: 8px 8px;
+        font-size: 0.98em;
+        margin-bottom: 10px;
+      }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px);}
+      to { opacity: 1; transform: none;}
+    }
+    @media (max-width: 600px) {
+      .admin-card .section-actions {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        margin-bottom: 10px !important;
+      }
+      .admin-card .section-actions > * {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 0 !important;
+        box-sizing: border-box;
+      }
+      #student-filter-year,
+      #student-filter-class,
+      #student-search,
+      #work-filter-year,
+      #work-filter-class,
+      #comment-search,
+      #comment-filter-class,
+      #comment-filter-work {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 0 !important;
+        box-sizing: border-box;
+        font-size: 1em;
+      }
+    }
   </style>
 </head>
 
@@ -306,9 +427,10 @@
           <input type="text" id="student-search" placeholder="搜尋姓名/學號/信箱" style="width:160px;">
         </div>
         <table class="class-table" style="width:100%;">
-          <thead><tr><th>姓名</th><th>學號</th><th>班級</th><th>組別</th><th>信箱</th><th>操作</th></tr></thead>
+          <thead><tr><th>姓名</th><th>學號</th><th>班級</th><th>組別</th><th>信箱</th><th>顯示</th><th>操作</th></tr></thead>
           <tbody id="student-tbody"></tbody>
         </table>
+        <div id="student-pagination" class="comments-pagination"></div>
       </div>
       <!-- 作品展覽顯示控制 -->
       <div class="admin-card">
@@ -820,12 +942,15 @@
         const table = document.createElement('table');
         table.className = 'class-table';
         table.style.width = '100%';
-        table.innerHTML = `<thead><tr><th>班級ID</th><th>班級名稱</th><th>操作</th></tr></thead><tbody></tbody>`;
+        table.innerHTML = `<thead><tr><th>班級ID</th><th>班級名稱</th><th>顯示</th><th>操作</th></tr></thead><tbody></tbody>`;
         Object.values(classes||{}).filter(cls => cls.year == year).forEach(cls => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${cls.id}</td>
-            <td><input type="text" value="${cls.name}" data-id="${cls.id}" class="edit-class-name" style="width:100px;"></td>
+            <td><input type="text" value="${cls.name}" data-id="${cls.id}" class="edit-class-name" style="width:100px;">${cls.visible===false ? '<span style=\"color:#e88;font-size:0.9em;\">（已隱藏）</span>' : ''}</td>
+            <td>
+              <input type="checkbox" ${cls.visible!==false?'checked':''} onchange="toggleClassVisible('${cls.id}', this.checked)">
+            </td>
             <td>
               <button class="auth-btn" onclick="updateClass('${cls.id}')">儲存</button>
               <button class="auth-btn" style="background:#e88;" onclick="deleteClass('${cls.id}')">刪除</button>
@@ -978,7 +1103,7 @@
     }
     // ====== 補回管理員渲染函數 ======
     // 組別管理
-    async function renderGroupTable() {
+    async function renderGroupTable(editMode = false) {
       const groups = await window.FirebaseService.getGroups();
       const classes = await window.FirebaseService.getClasses();
       const container = document.getElementById('group-list-by-class');
@@ -992,16 +1117,77 @@
         classDiv.innerHTML = `<div style="font-weight:bold;margin-bottom:6px;">${cls.name}（${cls.year}）</div>
           <div class="group-list">
             ${classGroups.map(group => `
-              <span class="group-item">${group.name}
-                <button class="auth-btn" style="margin-left:6px;background:#e88;" onclick="deleteGroup('${group.id}')">刪除</button>
+              <span class="group-item">
+                ${editMode ? `<input type='checkbox' class='group-checkbox' value='${group.id}' style='margin-right:4px;'>` : ''}
+                ${group.name}
+                ${editMode ? `<button class='auth-btn' style='margin-left:6px;background:#e88;' onclick='deleteGroup("${group.id}")'>刪除</button>` : ''}
               </span>
             `).join('')}
           </div>`;
         container.appendChild(classDiv);
       });
+      // 若在編輯模式，顯示批次刪除按鈕
+      if (editMode) {
+        let batchBtn = document.getElementById('batch-delete-groups-btn');
+        if (!batchBtn) {
+          batchBtn = document.createElement('button');
+          batchBtn.className = 'auth-btn';
+          batchBtn.id = 'batch-delete-groups-btn';
+          batchBtn.style.background = '#e88';
+          batchBtn.style.marginBottom = '10px';
+          batchBtn.textContent = '批次刪除勾選組別';
+          container.parentElement.insertBefore(batchBtn, container);
+        }
+        batchBtn.onclick = async function() {
+          const checked = Array.from(document.querySelectorAll('.group-checkbox:checked')).map(cb => cb.value);
+          if (checked.length === 0) {
+            alert('請先勾選要刪除的組別');
+            return;
+          }
+          if (!confirm('確定要刪除這些組別嗎？')) return;
+          for (const groupId of checked) {
+            // 這裡直接刪除，不再 confirm
+            await firebase.database().ref('groups/' + groupId).remove();
+          }
+          alert('已批次刪除！');
+          renderGroupTable(true);
+        };
+      } else {
+        // 非編輯模式移除批次刪除按鈕
+        const batchBtn = document.getElementById('batch-delete-groups-btn');
+        if (batchBtn) batchBtn.remove();
+      }
+      // 找到組別管理卡片
+      const groupCard = document.querySelectorAll('.admin-card')[1];
+      if (groupCard && !groupCard.querySelector('#edit-groups-btn')) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'auth-btn';
+        editBtn.id = 'edit-groups-btn';
+        editBtn.textContent = editMode ? '完成' : '編輯';
+        editBtn.style.marginBottom = '10px';
+        groupCard.insertBefore(editBtn, groupCard.children[2]); // 在h4和form之間
+        let localEditMode = editMode;
+        editBtn.onclick = function() {
+          localEditMode = !localEditMode;
+          renderGroupTable(localEditMode);
+        };
+      }
+      const editBtn = document.getElementById('edit-groups-btn');
+      if (editBtn) editBtn.textContent = editMode ? '完成' : '編輯';
+    }
+    // 補上 window.deleteGroup
+    window.deleteGroup = async function(groupId) {
+      if (!confirm('確定要刪除這個組別嗎？')) return;
+      try {
+        await firebase.database().ref('groups/' + groupId).remove();
+        alert('組別已刪除');
+        renderGroupTable();
+      } catch (err) {
+        alert('刪除失敗：' + err.message);
+      }
     }
     // 學生帳號管理
-    async function renderStudentTable() {
+    async function renderStudentTable(page = 1) {
       const users = await window.FirebaseService.getUsers();
       const classes = await window.FirebaseService.getClasses();
       const groups = await window.FirebaseService.getGroups();
@@ -1010,12 +1196,20 @@
       const keyword = document.getElementById('student-search').value.trim();
       const tbody = document.getElementById('student-tbody');
       tbody.innerHTML = '';
-      Object.values(users || {}).filter(u => u.role === 'student').filter(u => {
+      // 分頁邏輯
+      const allStudents = Object.values(users || {}).filter(u => u.role === 'student').filter(u => {
         if (year && classes[u.classId]?.year != year) return false;
         if (classId && u.classId !== classId) return false;
         if (keyword && !(u.name?.includes(keyword) || u.studentId?.includes(keyword) || u.email?.includes(keyword))) return false;
         return true;
-      }).forEach(u => {
+      });
+      const pageSize = 15;
+      const total = allStudents.length;
+      const totalPages = Math.ceil(total / pageSize) || 1;
+      const currentPage = Math.max(1, Math.min(page, totalPages));
+      const startIdx = (currentPage - 1) * pageSize;
+      const pageStudents = allStudents.slice(startIdx, startIdx + pageSize);
+      pageStudents.forEach(u => {
         const tr = document.createElement('tr');
         const groupName = groups[u.groupId]?.name || u.groupId || '';
         tr.innerHTML = `
@@ -1028,6 +1222,32 @@
         `;
         tbody.appendChild(tr);
       });
+      // 分頁按鈕
+      const pagination = document.getElementById('student-pagination');
+      pagination.innerHTML = '';
+      if (totalPages > 1) {
+        if (currentPage > 1) {
+          const prevBtn = document.createElement('button');
+          prevBtn.className = 'page-button';
+          prevBtn.textContent = '上一頁';
+          prevBtn.onclick = () => renderStudentTable(currentPage - 1);
+          pagination.appendChild(prevBtn);
+        }
+        for (let i = 1; i <= totalPages; i++) {
+          const pageBtn = document.createElement('button');
+          pageBtn.className = 'page-button' + (i === currentPage ? ' active' : '');
+          pageBtn.textContent = i;
+          if (i !== currentPage) pageBtn.onclick = () => renderStudentTable(i);
+          pagination.appendChild(pageBtn);
+        }
+        if (currentPage < totalPages) {
+          const nextBtn = document.createElement('button');
+          nextBtn.className = 'page-button';
+          nextBtn.textContent = '下一頁';
+          nextBtn.onclick = () => renderStudentTable(currentPage + 1);
+          pagination.appendChild(nextBtn);
+        }
+      }
     }
     // 作品展覽顯示控制
     async function renderWorkTable() {
@@ -1111,9 +1331,9 @@
         }
       });
       // 綁定事件
-      document.getElementById('student-filter-year').onchange = renderStudentTable;
-      document.getElementById('student-filter-class').onchange = renderStudentTable;
-      document.getElementById('student-search').oninput = renderStudentTable;
+      document.getElementById('student-filter-year').onchange = () => renderStudentTable(1);
+      document.getElementById('student-filter-class').onchange = () => renderStudentTable(1);
+      document.getElementById('student-search').oninput = () => renderStudentTable(1);
     }
     function renderWorkFilters() {
       window.FirebaseService.getClasses().then(classes => {
@@ -1285,6 +1505,110 @@
       alert('批次隱藏完成！');
       renderWorkTable();
     };
+    window.editStudent = async function(id) {
+      const users = await window.FirebaseService.getUsers();
+      const classes = await window.FirebaseService.getClasses();
+      const groups = await window.FirebaseService.getGroups();
+      const user = users[id];
+      if (!user) {
+        alert('找不到學生資料');
+        return;
+      }
+      // 產生班級下拉
+      let classOptions = '';
+      Object.values(classes || {}).forEach(cls => {
+        classOptions += `<option value="${cls.id}"${user.classId===cls.id?' selected':''}>${cls.name}</option>`;
+      });
+      // 產生組別下拉（預設為該班級）
+      function getGroupOptions(classId, selectedGroupId) {
+        let opts = '';
+        Object.values(groups || {}).filter(g => g.classId === classId).forEach(g => {
+          opts += `<option value="${g.id}"${selectedGroupId===g.id?' selected':''}>${g.name}</option>`;
+        });
+        return opts;
+      }
+      let groupOptions = getGroupOptions(user.classId, user.groupId);
+      const modalId = 'edit-student-modal';
+      let modal = document.getElementById(modalId);
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.style.position = 'fixed';
+        modal.style.left = '0';
+        modal.style.top = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.4)';
+        modal.style.zIndex = '100000';
+        modal.innerHTML = `
+          <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff7f7;padding:32px 24px 24px 24px;border-radius:14px;max-width:350px;width:92vw;box-shadow:0 4px 24px #b6868620;">
+            <h2 style="color:#b77;font-size:1.2em;margin-bottom:18px;text-align:center;">編輯學生資料</h2>
+            <div class="modal-content">
+              <form id="edit-student-form">
+                <label>姓名</label>
+                <input type="text" id="edit-student-name" value="${user.name||''}" required>
+                <label>學號</label>
+                <input type="text" id="edit-student-studentid" value="${user.studentId||''}" required>
+                <label>班級</label>
+                <select id="edit-student-classid" required>${classOptions}</select>
+                <label>組別</label>
+                <select id="edit-student-groupid" required>${groupOptions}</select>
+                <button type="submit" class="auth-btn">儲存</button>
+                <button type="button" id="close-edit-student-modal" class="auth-btn">取消</button>
+              </form>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      } else {
+        modal.style.display = '';
+        // 更新下拉內容
+        modal.querySelector('#edit-student-classid').innerHTML = classOptions;
+        modal.querySelector('#edit-student-groupid').innerHTML = groupOptions;
+        modal.querySelector('#edit-student-name').value = user.name||'';
+        modal.querySelector('#edit-student-studentid').value = user.studentId||'';
+      }
+      // 關閉Modal
+      modal.querySelector('#close-edit-student-modal').onclick = () => { modal.style.display = 'none'; };
+      // 切換班級時，組別下拉自動更新
+      const classSel = modal.querySelector('#edit-student-classid');
+      const groupSel = modal.querySelector('#edit-student-groupid');
+      classSel.onchange = function() {
+        groupSel.innerHTML = getGroupOptions(classSel.value, '');
+      };
+      // 送出表單
+      modal.querySelector('#edit-student-form').onsubmit = async function(e) {
+        e.preventDefault();
+        const name = modal.querySelector('#edit-student-name').value.trim();
+        const studentId = modal.querySelector('#edit-student-studentid').value.trim();
+        const classId = classSel.value;
+        const groupId = groupSel.value;
+        if (!name || !studentId || !classId || !groupId) {
+          alert('請填寫完整資料');
+          return;
+        }
+        try {
+          await firebase.database().ref('users/' + id).update({
+            name,
+            studentId,
+            classId,
+            groupId,
+            updatedAt: new Date().toISOString()
+          });
+          alert('已更新！');
+          modal.style.display = 'none';
+          renderStudentTable(1);
+        } catch (err) {
+          alert('更新失敗：' + err.message);
+        }
+      };
+    }
+    // 新增 toggleClassVisible
+    window.toggleClassVisible = async function(classId, visible) {
+      await firebase.database().ref('classes/' + classId + '/visible').set(!!visible);
+      renderClassListByYear();
+      renderGroupClassOptions && renderGroupClassOptions();
+    }
   </script>
 </body>
 <div id="upload-work-modal" style="display:none;"></div>

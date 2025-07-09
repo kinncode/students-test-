@@ -218,19 +218,34 @@ const FirebaseService = {
   // 新增或更新用戶資料
   async addUser(userData) {
     try {
-      const newUserRef = database.ref('users').push();
-      const userId = newUserRef.key;
-      const user = {
-        id: userId,
-        ...userData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      await newUserRef.set(user);
-      console.log('使用者新增成功:', userId);
-      return userId;
+      // 先查詢是否已存在相同 uid
+      const snapshot = await database.ref('users').orderByChild('uid').equalTo(userData.uid).once('value');
+      const users = snapshot.val();
+      if (users) {
+        // 已存在，取第一個 key
+        const key = Object.keys(users)[0];
+        await database.ref('users/' + key).update({
+          ...userData,
+          updatedAt: new Date().toISOString()
+        });
+        console.log('使用者已更新:', key);
+        return key;
+      } else {
+        // 不存在才新增
+        const newUserRef = database.ref('users').push();
+        const userId = newUserRef.key;
+        const user = {
+          id: userId,
+          ...userData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        await newUserRef.set(user);
+        console.log('使用者新增成功:', userId);
+        return userId;
+      }
     } catch (error) {
-      console.error('新增使用者失敗:', error);
+      console.error('新增/更新使用者失敗:', error);
       throw error;
     }
   },
