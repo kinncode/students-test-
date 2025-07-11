@@ -303,9 +303,6 @@ window.FirebaseService = FirebaseService;
 // 頁面載入時測試連線
 document.addEventListener('DOMContentLoaded', async () => {
   const isConnected = await FirebaseService.testConnection();
-  if (isConnected) {
-    await FirebaseService.initializeDatabase();
-  }
 });
 
 // 檢查 groups 的實際結構
