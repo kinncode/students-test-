@@ -38,7 +38,8 @@
         color: #fff; 
         font-size: 1em; 
         cursor: pointer; 
-        transition: all 0.3s ease;
+        transition: all 0.3s ease; 
+        backdrop-filter: blur(10px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
       .class-btn.active, .class-btn:hover { 
@@ -104,6 +105,7 @@
         border: 1px solid #f0e6e0;
         transition: all 0.3s ease;
         position: relative;
+        
       }
       .work-item:hover {
         transform: translateY(-8px);
@@ -918,47 +920,34 @@
         if (cache) {
           renderExhibition(cache);
         }
-        (async()=>{
-    try {
-      const [classes, groups, works, comments, users] = await Promise.all([
-        window.FirebaseService.getClasses(),
-        window.FirebaseService.getGroups(),
-        window.FirebaseService.getWorks(),
-        window.FirebaseService.getComments(),
-        window.FirebaseService.getUsers()
-      ]);
+          (async()=>{
+            const classes = await window.FirebaseService.getClasses();
+            const groups = await window.FirebaseService.getGroups();
+            const works = await window.FirebaseService.getWorks();
+            const comments = await window.FirebaseService.getComments();
+            const users = await window.FirebaseService.getUsers();
+            const newData = { classes, groups, works, comments, users };
+            if (!cache || !isDataEqual(cache, newData)) {
+              cacheExhibitionData(newData);
+              renderExhibition(newData);
+            } else {
+              // 只更新 cache 時間
+              cacheExhibitionData(newData);
+            }
+          })();
+        });
 
-      const newData = { classes, groups, works, comments, users };
-
-      // 檢查新抓的資料是否與快取中的不同
-      if (!cache || !isDataEqual(cache, newData)) {
-        console.log('資料已更新，重新渲染畫面。');
-        // 如果資料有更新，則更新快取並重新渲染整個展覽
-        cacheExhibitionData(newData);
-        renderExhibition(newData);
-      } else {
-        console.log('資料無變更，僅更新快取時間。');
-        // 如果資料沒變，只需更新快取的時間戳記
-        cacheExhibitionData(newData);
-      }
-    } catch (error) {
-        console.error("並行獲取 Firebase 資料失敗:", error);
-        // 可以考慮在此處加入一個錯誤提示 UI
-    }
-  })();
-});
-
-      // ====== 浮動登入卡片 HTML 結構初始化 ======
-      // (function(){
-      //   if (!document.getElementById('auth-fab')) {
-      //     const fabHtml = `
-      //       <div id="auth-fab" class="auth-fab-modern" tabindex="0"></div>
-      //       <div id="auth-panel-modern" class="auth-panel-modern" style="display:flex;"></div>
-      //       <div id="auth-panel-bg" class="auth-panel-bg" style="display:none;"></div>
-      //     `;
-      //     document.body.insertAdjacentHTML('beforeend', fabHtml);
-      //   }
-      // })();
+        // ====== 浮動登入卡片 HTML 結構初始化 ======
+        // (function(){
+        //   if (!document.getElementById('auth-fab')) {
+        //     const fabHtml = `
+        //       <div id="auth-fab" class="auth-fab-modern" tabindex="0"></div>
+        //       <div id="auth-panel-modern" class="auth-panel-modern" style="display:flex;"></div>
+        //       <div id="auth-panel-bg" class="auth-panel-bg" style="display:none;"></div>
+        //     `;
+        //     document.body.insertAdjacentHTML('beforeend', fabHtml);
+        //   }
+        // })();
       // ====== 浮動登入卡片互動控制 ======
       function showModernAuthPanel() {
         document.getElementById('auth-panel-modern').classList.add('open');
@@ -1326,6 +1315,17 @@
               regForm.setAttribute('data-google', '');
               showLoginForm();
               closeLoginModal();
+              location.reload();
+              // 新增：註冊成功後主動刷新浮動登入卡片
+              if (user) {
+                const users = await window.FirebaseService.getUsers();
+                let usersByUid = {};
+                Object.values(users || {}).forEach(u => {
+                  if (u.uid) usersByUid[u.uid] = u;
+                });
+                window.currentProfile = Object.values(usersByUid||{}).find(u => u.uid === user.uid);
+                renderModernAuth();
+              }
             } else {
               try {
                 const password = document.getElementById('reg-password-modal').value;
@@ -1630,6 +1630,9 @@
         document.getElementById('reg-email-modal').readOnly = true;
         document.getElementById('reg-email-modal').parentElement.style.display = 'none';
         document.getElementById('reg-password-modal').parentElement.style.display = 'none';
+        // 新增：移除 required 屬性，避免瀏覽器驗證
+        document.getElementById('reg-email-modal').removeAttribute('required');
+        document.getElementById('reg-password-modal').removeAttribute('required');
         // 預設填入 Google 名字
         document.getElementById('reg-name-modal').value = user.displayName || user.email.split('@')[0];
         // 其餘欄位清空
