@@ -919,21 +919,34 @@
           renderExhibition(cache);
         }
         (async()=>{
-          const classes = await window.FirebaseService.getClasses();
-          const groups = await window.FirebaseService.getGroups();
-          const works = await window.FirebaseService.getWorks();
-          const comments = await window.FirebaseService.getComments();
-          const users = await window.FirebaseService.getUsers();
-          const newData = { classes, groups, works, comments, users };
-          if (!cache || !isDataEqual(cache, newData)) {
-            cacheExhibitionData(newData);
-            renderExhibition(newData);
-          } else {
-            // 只更新 cache 時間
-            cacheExhibitionData(newData);
-          }
-        })();
-      });
+    try {
+      const [classes, groups, works, comments, users] = await Promise.all([
+        window.FirebaseService.getClasses(),
+        window.FirebaseService.getGroups(),
+        window.FirebaseService.getWorks(),
+        window.FirebaseService.getComments(),
+        window.FirebaseService.getUsers()
+      ]);
+
+      const newData = { classes, groups, works, comments, users };
+
+      // 檢查新抓的資料是否與快取中的不同
+      if (!cache || !isDataEqual(cache, newData)) {
+        console.log('資料已更新，重新渲染畫面。');
+        // 如果資料有更新，則更新快取並重新渲染整個展覽
+        cacheExhibitionData(newData);
+        renderExhibition(newData);
+      } else {
+        console.log('資料無變更，僅更新快取時間。');
+        // 如果資料沒變，只需更新快取的時間戳記
+        cacheExhibitionData(newData);
+      }
+    } catch (error) {
+        console.error("並行獲取 Firebase 資料失敗:", error);
+        // 可以考慮在此處加入一個錯誤提示 UI
+    }
+  })();
+});
 
       // ====== 浮動登入卡片 HTML 結構初始化 ======
       // (function(){
