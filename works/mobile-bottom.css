@@ -1,0 +1,79 @@
+@media (max-width: 600px) {
+    .mobile-bottom-nav {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        height: 56px;
+        background: #fbeeee; /* 改為與header呼應的淺色 */
+        border-top: 1.5px solid #e8c4c4;
+        display: flex;
+        z-index: 9999;
+        box-shadow: 0 -2px 16px rgba(187, 119, 119, 0.15); /* 調整陰影色 */
+        border-radius: 18px 18px 0 0;
+        overflow: hidden;
+    }
+    .mobile-bottom-nav .nav-btn {
+        flex: 1 1 0;
+        border: none;
+        background: none;
+        color: var(--nav-color, #8B5A5A); /* 統一深色調 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+        transition: color 0.18s, background 0.18s;
+        outline: none;
+        height: 100%;
+        min-width: 0;
+    }
+    .mobile-bottom-nav .nav-btn .nav-icon {
+        display: block;
+        margin-bottom: 2px;
+        height: 24px;
+        width: 24px;
+    }
+    .mobile-bottom-nav .nav-label {
+        font-size: 11px;
+        letter-spacing: 0.01em;
+        margin-top: 0;
+        line-height: 1.1;
+    }
+    .mobile-bottom-nav .nav-btn.active,
+    .mobile-bottom-nav .nav-btn:active {
+        color: #fff;
+        background: var(--nav-active-bg, linear-gradient(135deg, #bb7777, #aa7777));
+    }
+    .mobile-bottom-nav .nav-btn.active .nav-icon svg,
+    .mobile-bottom-nav .nav-btn:active .nav-icon svg {
+        stroke: #fff;
+    }
+    .mobile-bottom-nav .nav-exhibition {
+        /* 展覽按鈕主題色 */
+        --nav-color: #8B5A5A;
+        --nav-bg: transparent;
+        --nav-active-bg: linear-gradient(135deg, #bb7777, #aa7777);
+    }
+    .mobile-bottom-nav .nav-profile {
+        /* 個人按鈕主題色 */
+        --nav-color: #8B5A5A;
+        --nav-bg: transparent;
+        --nav-active-bg: linear-gradient(135deg, #bb7777, #aa7777);
+    }
+    .mobile-bottom-nav .nav-btn {
+        color: var(--nav-color, #8B5A5A);
+        background: var(--nav-bg, transparent);
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .mobile-bottom-nav .nav-exhibition { flex: 0 0 50%; }
+    .mobile-bottom-nav .nav-profile { flex: 0 0 50%; }
+}
+body {
+    padding-bottom: 56px; /* 跟 nav 高度一致 */
+}
+@media (min-width: 601px) {
+    .mobile-bottom-nav {
+        display: none !important;
+    }
+}
